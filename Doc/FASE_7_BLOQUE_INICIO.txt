@@ -1,0 +1,105 @@
+## ═══════════════════════════════════════════
+## FASE 7 — Testing (Unit + Integration + E2E)
+## ═══════════════════════════════════════════
+
+### 🟡 Registro de Inicio
+```
+Fecha de inicio  : 13 de abril de 2026
+Hora             : 20:15 UTC
+Prompt ejecutado : PROMPT-F7
+Ejecutado por    : GitHub Copilot
+Estado anterior  : Fase 6 (🔄 En progreso — manual testing incomplete)
+Prerequisitos    : • Fase 1-5 completadas ✅
+                   • Backend API funcional (Phase 4) ✅
+                   • Frontend UI funcional (Phase 5) ✅
+                   • Arquitectura BD validada ✅
+                   • Vitest + Playwright instalados ✅
+Observaciones    : Iniciando Fase 7 — Testing. Foco CRÍTICO: race condition (2 usuarios, 1 slot),
+                   lógica de conflictos de horarios (hayConflicto), autenticación PROFESSOR/ADMIN.
+                   Stack: Vitest (unit + integration, happy-dom, v8 coverage, 80% min),
+                   Playwright (E2E, 5 browsers, sequential).
+                   Meta: 66+ test cases = 47 unit + 8 integration + 11 E2E
+                   Coverage: 80%+ en lib/services/, 100% en horarios.ts (critical path)
+```
+
+### 📋 Subtareas a ejecutar
+
+- [ ] **Tarea 1** — Configuración Vitest (vitest.config.ts + tests/setup.ts)
+- [ ] **Tarea 2** — Tests Unitarios (horarios, reservas.service, errores)
+- [ ] **Tarea 3** — Tests de Integración (api-reservas.test.ts, 8 endpoings)
+- [ ] **Tarea 4** — Tests E2E Playwright (flujo-reserva + admin)
+- [ ] **Tarea 5** — Configuración Coverage (reporters, thresholds)
+- [ ] **Tarea 6** — CI/CD Integration (.github/workflows/ci.yml)
+
+### 🔴 Riesgos CRÍTICOS a mitigar
+
+| # | Riesgo | Capa 1 (DB) | Capa 2 (API) | Capa 3 (E2E) | Target |
+|---|---|---|---|---|---|
+| 1 | **Race condition (2 users, slot simultáneo)** | UNIQUE constraint | 409 Conflict response | 2-browser simultáneo | VALIDADO |
+| 2 | **False positive adyacentes (fin==inicio)** | Constraint check | Validation | 5+ unit tests | VALIDADO |
+| 3 | **Solapamiento parcial** | DB constraint | API 409 | E2E 409 toast | VALIDADO |
+| 4 | **Autorización PROFESSOR vs ADMIN** | Role check | 403 Forbidden | Redirect /admin | BLOQUEADO |
+
+### 📊 Cobertura de Test Cases (66+ total)
+
+```
+Unit Layer (47 tests):
+├── hayConflicto (12): sin overlap, exacto, inicio, fin, contenido, adyacente (🔴CRÍTICO), edge cases
+├── detectarConflicto (10): empty, 1 sin conf, 1 con conf, múltiples, performance, etc.
+├── Integridad CRÍTICA (5): consecutive slots, race condition, fin==inicio, contenido
+├── crearReserva (7): éxito, conflicto, solapamiento, auth, ACID
+├── cancelarReserva (3): propia, ajena prof (403), ajena admin (ok)
+└── Errores (5): 409, 403, 400, 404, 500
+
+Integration Layer (8 tests):
+├── POST /reservas sin token → 401
+├── POST body inválido → 400
+├── POST slot libre → 201
+├── POST slot ocupado → 409
+├── POST solapamiento parcial → 409
+├── GET /reservas PROFESSOR → filtered
+├── GET /reservas ADMIN → all
+├── PUT cancelar propia → 200
+└── PUT cancelar ajena prof → 403
+
+E2E Layer (11 tests):
+├── Login exitoso → /dashboard
+├── No sesión → /login redirect
+├── Credenciales inválidas → error toast
+├── Flujo completo 3 pasos → reserva creada
+├── Validación campos → button disabled
+├── 🔴 RACE CONDITION → Prof1 + Prof2, slot simultáneo, 409 + calendar refresh
+├── Cancelación → estado CANCELADA
+├── Slot liberado disponible → VERDE
+├── Admin access → /admin visible
+├── Professor /admin → redirect /dashboard
+└── Admin ve todas + permisos
+```
+
+---
+
+### Directrices de Ejecución
+
+1. **Prerequisitos:**
+   - Node.js 18+ + pnpm 9.x: ✅ instalados
+   - PostgreSQL local o Neon branch: ✅
+   - Vitest + Playwright paquetes: ✅
+
+2. **Ejecución (local development):**
+   ```bash
+   pnpm test:unit          # Run all unit tests
+   pnpm test:integration   # Run API integration (needs server running)
+   pnpm test:e2e           # Run E2E Playwright (needs server at :3000)
+   pnpm test:coverage      # Generate coverage report (80% min check)
+   ```
+
+3. **CI/CD (automatic on push/PR):**
+   - GitHub Actions ejecutará .github/workflows/ci.yml
+   - Jobs: Lint → Unit → Integration → E2E → Build → Summary
+   - Artifacts: playwright-report, coverage/** uploaded to Codecov
+
+---
+
+**Estado Pre-Inicio:** ⬜ PENDIENTE
+** A completarse en esta sesión (PROMPT-F7)
+
