@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from '@/lib/prisma';
+import { ensureDatabaseSchema, prisma } from '@/lib/prisma';
 import * as bcryptjs from 'bcryptjs';
 import { LoginSchema } from '@/lib/validations/usuario.schema';
 import { CORREO_SUPREMO } from '@/lib/services/cuentas-autorizadas';
@@ -15,6 +15,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        await ensureDatabaseSchema();
         const parsed = LoginSchema.safeParse(credentials);
         if (!parsed.success) {
           return null;
