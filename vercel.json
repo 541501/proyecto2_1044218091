@@ -1,9 +1,6 @@
 {
-  "buildCommand": "pnpm run build",
-  "devCommand": "pnpm run dev",
-  "installCommand": "pnpm install",
+  "buildCommand": "npm run build",
   "framework": "nextjs",
-  "nodeVersion": "18.x",
   "env": [
     "DATABASE_URL",
     "DIRECT_URL",
