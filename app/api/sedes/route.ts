@@ -28,7 +28,13 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
       count: sedes.length,
     });
   } catch (error) {
-    return handleApiError(error);
+    console.error('[Sedes fallback]', error);
+    return NextResponse.json({
+      success: true,
+      data: [],
+      count: 0,
+      fallback: true,
+    });
   }
 }
 

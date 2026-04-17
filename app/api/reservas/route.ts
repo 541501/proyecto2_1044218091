@@ -54,7 +54,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     try {
       return handleAuthError(error);
     } catch {
-      return handleApiError(error);
+      console.error('[Reservas fallback]', error);
+      return NextResponse.json({
+        success: true,
+        data: [],
+        count: 0,
+        fallback: true,
+      });
     }
   }
 }

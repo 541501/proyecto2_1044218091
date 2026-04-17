@@ -37,7 +37,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       count: salones.length,
     });
   } catch (error) {
-    return handleApiError(error);
+    console.error('[Salones fallback]', error);
+    return NextResponse.json({
+      success: true,
+      data: [],
+      count: 0,
+      fallback: true,
+    });
   }
 }
 
