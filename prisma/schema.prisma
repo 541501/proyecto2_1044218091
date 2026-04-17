@@ -28,6 +28,20 @@ model Usuario {
   @@map("usuarios")
 }
 
+model CuentaAutorizada {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  nombre    String?
+  rol       Rol      @default(PROFESOR)
+  activa    Boolean  @default(true)
+  registrada Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email, activa])
+  @@map("cuentas_autorizadas")
+}
+
 enum Rol {
   ADMIN
   PROFESOR

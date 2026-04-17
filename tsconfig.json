@@ -2,6 +2,7 @@
   "compilerOptions": {
     "ignoreDeprecations": "5.0",
     "target": "ES2020",
+    "baseUrl": ".",
     "lib": [
       "ES2020",
       "dom",
@@ -9,7 +10,7 @@
     ],
     "jsx": "preserve",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowJs": true,
     "strict": true,
@@ -51,9 +52,6 @@
     "tsBuildInfoFile": "./.next/cache/tsbuildinfo.json",
     "isolatedModules": true,
     "noEmit": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "plugins": [
       {
         "name": "next"

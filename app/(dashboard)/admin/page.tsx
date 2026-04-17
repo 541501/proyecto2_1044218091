@@ -1,5 +1,6 @@
 'use client';
 
+import { FormEvent, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
@@ -11,6 +12,9 @@ import {
   Calendar,
   Building2,
   AlertTriangle,
+  Shield,
+  Trash2,
+  UserPlus,
 } from 'lucide-react';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
@@ -29,6 +33,15 @@ interface Salon {
   id: string;
 }
 
+interface CuentaAutorizada {
+  id: string;
+  email: string;
+  nombre: string | null;
+  rol: 'ADMIN' | 'PROFESOR';
+  activa: boolean;
+  registrada: boolean;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -36,12 +49,19 @@ interface ApiResponse<T> {
 
 export default function AdminPage() {
   const { data: session } = useSession();
+  const [email, setEmail] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [rol, setRol] = useState<'ADMIN' | 'PROFESOR'>('PROFESOR');
+  const [formMessage, setFormMessage] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   if (session?.user?.role !== 'ADMIN') {
     redirect('/dashboard');
   }
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading: isLoadingStats, refetch: refetchStats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
       const [sedesRes, salonesRes, reservasRes] = await Promise.all([
@@ -68,15 +88,97 @@ export default function AdminPage() {
     },
   });
 
-  if (isLoading) {
-    return <LoadingSpinner message="Cargando estadisticas..." />;
+  const {
+    data: cuentas = [],
+    isLoading: isLoadingCuentas,
+    refetch: refetchCuentas,
+  } = useQuery({
+    queryKey: ['cuentas-autorizadas'],
+    queryFn: async () => {
+      const response = await fetch('/api/cuentas-autorizadas');
+      const payload = (await response.json()) as ApiResponse<CuentaAutorizada[]> & { error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error || 'No se pudieron cargar las cuentas autorizadas');
+      }
+
+      return payload.data;
+    },
+  });
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSaving(true);
+    setFormError(null);
+    setFormMessage(null);
+
+    try {
+      const response = await fetch('/api/cuentas-autorizadas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          nombre: nombre || undefined,
+          rol,
+        }),
+      });
+
+      const payload = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        setFormError(payload.error || 'No se pudo guardar la cuenta autorizada');
+        return;
+      }
+
+      setFormMessage('Cuenta autorizada guardada correctamente');
+      setEmail('');
+      setNombre('');
+      setRol('PROFESOR');
+      await Promise.all([refetchCuentas(), refetchStats()]);
+    } catch (error) {
+      setFormError('No se pudo guardar la cuenta autorizada');
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (cuentaId: string) => {
+    setDeletingId(cuentaId);
+    setFormError(null);
+    setFormMessage(null);
+
+    try {
+      const response = await fetch(`/api/cuentas-autorizadas/${cuentaId}`, {
+        method: 'DELETE',
+      });
+
+      const payload = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        setFormError(payload.error || 'No se pudo eliminar la cuenta autorizada');
+        return;
+      }
+
+      setFormMessage('Cuenta autorizada eliminada');
+      await refetchCuentas();
+    } catch (error) {
+      setFormError('No se pudo eliminar la cuenta autorizada');
+      console.error(error);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  if (isLoadingStats || isLoadingCuentas) {
+    return <LoadingSpinner message="Cargando administracion..." />;
   }
 
   return (
     <div className="space-y-8 px-6 py-8">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Panel de Administracion</h1>
-        <p className="mt-2 text-slate-600">Metricas y gestion del sistema</p>
+        <p className="mt-2 text-slate-600">Metricas del sistema y control de acceso por cuentas autorizadas</p>
       </div>
 
       {stats && (
@@ -140,8 +242,126 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
+
+          <div className="rounded-lg border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-600">Cuentas autorizadas</p>
+                <p className="text-3xl font-bold text-slate-900">{cuentas.length}</p>
+              </div>
+              <div className="rounded-lg bg-slate-100 p-3">
+                <Shield className="h-6 w-6 text-slate-700" />
+              </div>
+            </div>
+          </div>
         </div>
       )}
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <section className="rounded-lg border border-slate-200 bg-white p-6">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-lg bg-blue-100 p-2">
+              <UserPlus className="h-5 w-5 text-blue-700" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Autorizar cuentas</h2>
+              <p className="text-sm text-slate-600">Solo estos correos podran registrarse e iniciar sesion</p>
+            </div>
+          </div>
+
+          {formError && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {formError}
+            </div>
+          )}
+
+          {formMessage && (
+            <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+              {formMessage}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Correo institucional</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="nombre.apellido@usa.edu.co"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Nombre de referencia</label>
+              <input
+                type="text"
+                value={nombre}
+                onChange={(event) => setNombre(event.target.value)}
+                placeholder="Nombre opcional para identificar la cuenta"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Rol permitido</label>
+              <select
+                value={rol}
+                onChange={(event) => setRol(event.target.value as 'ADMIN' | 'PROFESOR')}
+                className="w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="PROFESOR">Profesor</option>
+                <option value="ADMIN">Administrador</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:bg-blue-400"
+            >
+              {isSaving ? 'Guardando...' : 'Guardar cuenta autorizada'}
+            </button>
+          </form>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Lista autorizada</h2>
+              <p className="text-sm text-slate-600">Controla quien puede entrar al sistema</p>
+            </div>
+            <Shield className="h-5 w-5 text-slate-500" />
+          </div>
+
+          <div className="space-y-3">
+            {cuentas.map((cuenta) => (
+              <div key={cuenta.id} className="rounded-lg border border-slate-200 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-900">{cuenta.email}</p>
+                    <p className="text-sm text-slate-600">
+                      {cuenta.nombre || 'Sin nombre'} · {cuenta.rol} · {cuenta.registrada ? 'Registrada' : 'Pendiente'}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(cuenta.id)}
+                    disabled={deletingId === cuenta.id || cuenta.email === 'juan.gutierrez20@usa.edu.co'}
+                    className="rounded-lg border border-slate-200 p-2 text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    aria-label={`Eliminar ${cuenta.email}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
 
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-slate-900">Gestion</h2>

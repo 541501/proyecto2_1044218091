@@ -2,61 +2,81 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { RegistroSchema } from '@/lib/validations/usuario.schema';
+import { RegistroApiSchema } from '@/lib/validations/usuario.schema';
+import { obtenerCuentaAutorizadaPorEmail, obtenerRolAutorizado } from '@/lib/services/cuentas-autorizadas';
 
-/**
- * POST /api/auth/registro
- * 
- * Crea un nuevo usuario en el sistema
- * Requiere: nombre, email, password
- * Retorna: usuario creado o error
- */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const validation = RegistroApiSchema.safeParse(body);
 
-    // Validar input
-    const validation = RegistroSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Validación fallida', details: validation.error.issues },
+        { error: 'Validacion fallida', details: validation.error.issues },
         { status: 400 }
       );
     }
 
     const { nombre, email, password } = validation.data;
 
-    // Verificar si email ya existe
     const usuarioExistente = await prisma.usuario.findUnique({
       where: { email },
     });
 
     if (usuarioExistente) {
       return NextResponse.json(
-        { error: 'El email ya está registrado' },
+        { error: 'El correo ya esta registrado' },
         { status: 409 }
       );
     }
 
-    // Hashear contraseña
+    const cuentaAutorizada = await obtenerCuentaAutorizadaPorEmail(email);
+
+    if (!cuentaAutorizada || !cuentaAutorizada.activa) {
+      return NextResponse.json(
+        { error: 'Tu correo no esta autorizado para crear cuenta. Solicita acceso al administrador.' },
+        { status: 403 }
+      );
+    }
+
+    if (cuentaAutorizada.registrada) {
+      return NextResponse.json(
+        { error: 'Esta cuenta autorizada ya fue utilizada para registrarse.' },
+        { status: 409 }
+      );
+    }
+
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
+    const rol = obtenerRolAutorizado(cuentaAutorizada);
 
-    // Crear usuario
-    const usuario = await prisma.usuario.create({
-      data: {
-        nombre,
-        email,
-        password: passwordHash,
-        rol: 'PROFESOR', // Default role
-      },
-      select: {
-        id: true,
-        nombre: true,
-        email: true,
-        rol: true,
-        createdAt: true,
-      },
+    const usuario = await prisma.$transaction(async (tx) => {
+      const nuevoUsuario = await tx.usuario.create({
+        data: {
+          nombre,
+          email,
+          password: passwordHash,
+          rol,
+        },
+        select: {
+          id: true,
+          nombre: true,
+          email: true,
+          rol: true,
+          createdAt: true,
+        },
+      });
+
+      await tx.cuentaAutorizada.update({
+        where: { id: cuentaAutorizada.id },
+        data: {
+          nombre,
+          rol,
+          registrada: true,
+        },
+      });
+
+      return nuevoUsuario;
     });
 
     return NextResponse.json(usuario, { status: 201 });
@@ -65,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validación fallida', details: error.issues },
+        { error: 'Validacion fallida', details: error.issues },
         { status: 400 }
       );
     }

@@ -1,34 +1,32 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "@/lib/prisma";
-import * as bcryptjs from "bcryptjs";
-import { z } from "zod";
-
-// Esquema de validación para login
-const credentialsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { prisma } from '@/lib/prisma';
+import * as bcryptjs from 'bcryptjs';
+import { LoginSchema } from '@/lib/validations/usuario.schema';
+import { CORREO_SUPREMO, obtenerCuentaAutorizadaPorEmail, obtenerRolAutorizado } from '@/lib/services/cuentas-autorizadas';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     CredentialsProvider({
-      id: "credentials",
-      name: "Credentials",
+      id: 'credentials',
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // Validar credenciales
-        const parsed = credentialsSchema.safeParse(credentials);
+        const parsed = LoginSchema.safeParse(credentials);
         if (!parsed.success) {
           return null;
         }
 
         const { email, password } = parsed.data;
+        const cuentaAutorizada = await obtenerCuentaAutorizadaPorEmail(email);
 
-        // Buscar usuario en BD
+        if (!cuentaAutorizada || !cuentaAutorizada.activa) {
+          return null;
+        }
+
         const usuario = await prisma.usuario.findUnique({
           where: { email },
         });
@@ -37,32 +35,49 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        // Verificar contraseña
         const esValida = await bcryptjs.compare(password, usuario.password);
         if (!esValida) {
           return null;
         }
 
-        // Retornar datos de usuario para sesión
+        const role = email === CORREO_SUPREMO ? 'ADMIN' : obtenerRolAutorizado(cuentaAutorizada);
+
+        if (!cuentaAutorizada.registrada || usuario.rol !== role) {
+          await prisma.$transaction([
+            prisma.usuario.update({
+              where: { id: usuario.id },
+              data: { rol: role },
+            }),
+            prisma.cuentaAutorizada.update({
+              where: { id: cuentaAutorizada.id },
+              data: {
+                registrada: true,
+                nombre: usuario.nombre,
+                rol: role,
+              },
+            }),
+          ]);
+        }
+
         return {
           id: usuario.id,
           email: usuario.email,
           name: usuario.nombre,
-          role: usuario.rol,
+          role,
         };
       },
     }),
   ],
   session: {
-    strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24 horas
+    strategy: 'jwt',
+    maxAge: 24 * 60 * 60,
   },
   jwt: {
-    maxAge: 24 * 60 * 60, // 24 horas
+    maxAge: 24 * 60 * 60,
   },
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: '/login',
+    error: '/login',
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -90,11 +105,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || "dev-secret-key",
+  secret: process.env.NEXTAUTH_SECRET || 'dev-secret-key',
 });
 
-// Tipos extendidos para NextAuth
-declare module "next-auth" {
+declare module 'next-auth' {
   interface User {
     id: string;
     role: string;
