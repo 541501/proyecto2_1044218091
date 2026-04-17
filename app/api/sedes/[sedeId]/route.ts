@@ -11,7 +11,7 @@ import { prisma } from '@/lib/prisma';
 import {
   handleApiError,
   notFound,
-} from '@/lib/utils/errores';
+} from '@/lib/utils/errores-api';
 import {
   verificarAdmin,
   handleAuthError,

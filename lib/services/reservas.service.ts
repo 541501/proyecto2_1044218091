@@ -94,7 +94,7 @@ export async function crearReserva(
             where: {
               salonId,
               fecha: new Date(fecha),
-              estado: 'ACTIVA',
+              estado: 'CONFIRMADA',
             },
           });
 
@@ -121,15 +121,11 @@ export async function crearReserva(
             usuarioId,
             salonId,
             fecha: new Date(fecha),
-            horaInicio: new Date(
-              `2000-01-01T${horaInicio}:00`
-            ),
-            horaFin: new Date(
-              `2000-01-01T${horaFin}:00`
-            ),
+            horaInicio,
+            horaFin,
             nombreClase,
             descripcion: descripcion || null,
-            estado: 'ACTIVA',
+            estado: 'CONFIRMADA',
           },
           include: {
             usuario: true,
@@ -172,7 +168,7 @@ export async function crearReserva(
 export async function listarReservasUsuario(
   usuarioId: string,
   filtros?: {
-    estado?: 'ACTIVA' | 'CANCELADA';
+    estado?: 'CONFIRMADA' | 'CANCELADA';
     fechaDesde?: string;
     fechaHasta?: string;
   }
@@ -215,7 +211,7 @@ export async function listarReservasUsuario(
  */
 export async function listarTodasReservas(
   filtros?: {
-    estado?: 'ACTIVA' | 'CANCELADA';
+    estado?: 'CONFIRMADA' | 'CANCELADA';
     fechaDesde?: string;
     fechaHasta?: string;
     salonId?: string;
@@ -322,7 +318,7 @@ export async function obtenerDisponibilidad(
     where: {
       salonId,
       fecha: new Date(fecha),
-      estado: 'ACTIVA',
+      estado: 'CONFIRMADA',
     },
     select: {
       horaInicio: true,
@@ -343,12 +339,12 @@ export async function obtenerDisponibilidad(
     // Verificar si hay conflicto
     const hayConflictoEnEsteHorario =
       reservas.some((r) => {
-        const rInicio = (r.horaInicio as any).getHours();
-        const rFin = (r.horaFin as any).getHours();
+        const [hInicio] = r.horaInicio.split(':').map(Number);
+        const [hFin] = r.horaFin.split(':').map(Number);
         // Solapamiento simple por hora
         return !(
-          hora + 1 <= rInicio ||
-          hora >= rFin
+          hora + 1 <= hInicio ||
+          hora >= hFin
         );
       });
 

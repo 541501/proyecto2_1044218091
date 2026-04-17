@@ -9,7 +9,7 @@ import { prisma } from '@/lib/prisma';
 import {
   handleApiError,
   notFound,
-} from '@/lib/utils/errores';
+} from '@/lib/utils/errores-api';
 
 /**
  * GET /api/salones/[salonId]

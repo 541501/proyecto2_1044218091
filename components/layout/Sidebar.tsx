@@ -28,13 +28,13 @@ const navItems: NavItem[] = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: <Calendar className="w-5 h-5" />,
-    roles: ['PROFESSOR', 'ADMIN'],
+    roles: ['PROFESOR', 'ADMIN'],
   },
   {
     label: 'Mis Reservas',
     href: '/dashboard/reservas',
     icon: <BookOpen className="w-5 h-5" />,
-    roles: ['PROFESSOR', 'ADMIN'],
+    roles: ['PROFESOR', 'ADMIN'],
   },
   {
     label: 'Sedes',
@@ -60,7 +60,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const { data: session } = useSession();
   const [openSections, setOpenSections] = useState<string[]>([]);
 
-  const userRole = session?.user?.role || 'PROFESSOR';
+  const userRole = session?.user?.role || 'PROFESOR';
   const isAdmin = userRole === 'ADMIN';
 
   // Filtrar items según rol

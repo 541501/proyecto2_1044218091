@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { RegistroSchema } from '@/lib/validations/usuario.schema';
 
 /**
@@ -47,14 +47,14 @@ export async function POST(request: NextRequest) {
       data: {
         nombre,
         email,
-        passwordHash,
-        role: 'PROFESSOR', // Default role
+        password: passwordHash,
+        rol: 'PROFESOR', // Default role
       },
       select: {
         id: true,
         nombre: true,
         email: true,
-        role: true,
+        rol: true,
         createdAt: true,
       },
     });
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validación fallida', details: error.errors },
+        { error: 'Validación fallida', details: error.issues },
         { status: 400 }
       );
     }

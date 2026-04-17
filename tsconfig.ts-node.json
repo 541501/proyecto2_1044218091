@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "noEmit": false
+  },
+  "include": ["prisma/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
+}

@@ -4,8 +4,7 @@
  * Utilidades de autenticación y autorización para API Routes
  */
 
-import { getServerSession } from 'next-auth/next';
-import { authConfig } from '@/lib/auth';
+import { auth } from '@/auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { UnauthorizedError, ForbiddenError } from './errores';
 
@@ -14,7 +13,7 @@ import { UnauthorizedError, ForbiddenError } from './errores';
  * Retorna null si no está autenticado
  */
 export async function obtenerSesion() {
-  const session = await getServerSession(authConfig);
+  const session = await auth();
   return session;
 }
 

@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Modelos de base de datos
+
+model Usuario {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  nombre        String
+  password      String
+  rol           Rol       @default(PROFESOR)
+  sesiones      Session[]
+  reservas      Reserva[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+  @@map("usuarios")
+}
+
+enum Rol {
+  ADMIN
+  PROFESOR
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  sessionToken String   @unique
+  userId    String
+  user      Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("sesiones")
+}
+
+model Sede {
+  id        String           @id @default(cuid())
+  nombre    String           @unique
+  ubicacion String
+  bloques   Bloque[]
+  salones   Salon[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("sedes")
+}
+
+model Bloque {
+  id        String   @id @default(cuid())
+  nombre    String   // Ej: "A-1", "A-2", "B-1"
+  sedeId    String
+  sede      Sede     @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  salones   Salon[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sedeId, nombre])
+  @@index([sedeId])
+  @@map("bloques")
+}
+
+model Salon {
+  id        String    @id @default(cuid())
+  nombre    String    // Ej: "A-101", "A-102"
+  capacidad Int
+  sedeId    String
+  bloqueId  String
+  sede      Sede      @relation(fields: [sedeId], references: [id], onDelete: Cascade)
+  bloque    Bloque    @relation(fields: [bloqueId], references: [id], onDelete: Cascade)
+  reservas  Reserva[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([sedeId, nombre])
+  @@index([sedeId])
+  @@index([bloqueId])
+  @@map("salones")
+}
+
+model Reserva {
+  id           String   @id @default(cuid())
+  salonId      String
+  usuarioId    String
+  fecha        DateTime
+  horaInicio   String   // Ej: "08:00"
+  horaFin      String   // Ej: "09:30"
+  descripcion  String?
+  estado       EstadoReserva @default(CONFIRMADA)
+  salon        Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  /// Constraint único para evitar conflictos de horario
+  @@unique([salonId, fecha, horaInicio, horaFin])
+  @@index([salonId])
+  @@index([usuarioId])
+  @@index([fecha])
+  @@map("reservas")
+}
+
+enum EstadoReserva {
+  CONFIRMADA
+  CANCELADA
+}

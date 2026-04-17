@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   handleApiError,
   badRequest,
-} from '@/lib/utils/errores';
+} from '@/lib/utils/errores-api';
 import {
   obtenerDisponibilidad,
 } from '@/lib/services/reservas.service';

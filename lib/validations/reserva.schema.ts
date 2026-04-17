@@ -174,7 +174,7 @@ export type CancelarReservaInput = z.infer<
  */
 export const FiltrosReservaSchema = z.object({
   estado: z
-    .enum(['ACTIVA', 'CANCELADA'])
+    .enum(['CONFIRMADA', 'CANCELADA'])
     .optional(),
   fechaDesde: z
     .string()
