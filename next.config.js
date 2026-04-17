@@ -1,16 +1,10 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  typescript: {
-    strictNullChecks: true,
-    strict: true,
-  },
   images: {
     unoptimized: true, // Para Vercel serverless
   },
-  serverExternalPackages: ["bcryptjs"],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve = {
@@ -27,4 +21,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

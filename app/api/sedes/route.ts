@@ -10,7 +10,7 @@ import { prisma } from '@/lib/prisma';
 import {
   handleApiError,
   badRequest,
-} from '@/lib/utils/errores';
+} from '@/lib/utils/errores-api';
 import {
   verificarAdmin,
   handleAuthError,

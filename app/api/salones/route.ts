@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
   handleApiError,
-} from '@/lib/utils/errores';
+} from '@/lib/utils/errores-api';
 import {
   verificarAdmin,
   handleAuthError,

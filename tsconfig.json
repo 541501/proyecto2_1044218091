@@ -2,7 +2,11 @@
   "compilerOptions": {
     "ignoreDeprecations": "6.0",
     "target": "ES2020",
-    "lib": ["ES2020", "dom", "dom.iterable"],
+    "lib": [
+      "ES2020",
+      "dom",
+      "dom.iterable"
+    ],
     "jsx": "preserve",
     "module": "ESNext",
     "moduleResolution": "node",
@@ -27,11 +31,21 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["./*"],
-      "@/app/*": ["./app/*"],
-      "@/components/*": ["./components/*"],
-      "@/lib/*": ["./lib/*"],
-      "@/tests/*": ["./tests/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@/app/*": [
+        "./app/*"
+      ],
+      "@/components/*": [
+        "./components/*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/tests/*": [
+        "./tests/*"
+      ]
     },
     "incremental": true,
     "tsBuildInfoFile": "./.next/cache/tsbuildinfo.json",
@@ -39,10 +53,25 @@
     "noEmit": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "dist", ".next", "coverage"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "coverage"
+  ],
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs"
