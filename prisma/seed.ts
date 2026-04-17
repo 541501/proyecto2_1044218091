@@ -90,6 +90,7 @@ async function main() {
         email: 'juan.gutierrez20@usa.edu.co',
         nombre: 'Juan Gutierrez',
         rol: 'ADMIN',
+        escuela: null,
         activa: true,
         registrada: true,
       },
@@ -97,6 +98,7 @@ async function main() {
         email: 'profesor1@usa.edu.co',
         nombre: 'Profesor Uno',
         rol: 'PROFESOR',
+        escuela: null,
         activa: true,
         registrada: true,
       },
@@ -104,6 +106,7 @@ async function main() {
         email: 'profesor2@usa.edu.co',
         nombre: 'Profesor Dos',
         rol: 'PROFESOR',
+        escuela: null,
         activa: true,
         registrada: true,
       },
@@ -119,6 +122,7 @@ async function main() {
       nombre: 'Juan Gutierrez',
       password: passwordHash,
       rol: 'ADMIN',
+      escuela: null,
     },
   });
 
@@ -128,6 +132,7 @@ async function main() {
       nombre: 'Profesor Uno',
       password: passwordHash,
       rol: 'PROFESOR',
+      escuela: null,
     },
   });
 
@@ -137,6 +142,7 @@ async function main() {
       nombre: 'Profesor Dos',
       password: passwordHash,
       rol: 'PROFESOR',
+      escuela: null,
     },
   });
 

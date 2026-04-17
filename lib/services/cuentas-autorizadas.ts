@@ -1,13 +1,14 @@
 import { prisma } from '@/lib/prisma';
 
 export const CORREO_SUPREMO = 'juan.gutierrez20@usa.edu.co';
-export type RolAutorizado = 'ADMIN' | 'PROFESOR';
+export type RolAutorizado = 'ADMIN' | 'ESCUELA' | 'PROFESOR';
 
 type CuentaAutorizadaMinima = {
   id: string;
   email: string;
   nombre: string | null;
   rol: RolAutorizado;
+  escuela?: string | null;
   activa: boolean;
   registrada: boolean;
 };

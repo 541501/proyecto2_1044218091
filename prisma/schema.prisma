@@ -19,6 +19,7 @@ model Usuario {
   nombre        String
   password      String
   rol           Rol       @default(PROFESOR)
+  escuela       String?
   sesiones      Session[]
   reservas      Reserva[]
   createdAt     DateTime  @default(now())
@@ -33,6 +34,7 @@ model CuentaAutorizada {
   email     String   @unique
   nombre    String?
   rol       Rol      @default(PROFESOR)
+  escuela   String?
   activa    Boolean  @default(true)
   registrada Boolean @default(false)
   createdAt DateTime @default(now())
@@ -44,6 +46,7 @@ model CuentaAutorizada {
 
 enum Rol {
   ADMIN
+  ESCUELA
   PROFESOR
 }
 

@@ -33,7 +33,8 @@ export const RegistroApiSchema = z.object({
 export const CuentaAutorizadaSchema = z.object({
   nombre: z.string().trim().min(2, 'Nombre minimo 2 caracteres').max(100, 'Nombre maximo 100 caracteres').optional(),
   email: emailInstitucionalSchema,
-  rol: z.enum(['ADMIN', 'PROFESOR']).default('PROFESOR'),
+  rol: z.enum(['ADMIN', 'ESCUELA', 'PROFESOR']).default('PROFESOR'),
+  escuela: z.string().trim().max(120, 'Escuela maxima 120 caracteres').optional(),
 });
 
 /**

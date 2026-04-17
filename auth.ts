@@ -46,7 +46,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           await prisma.$transaction([
             prisma.usuario.update({
               where: { id: usuario.id },
-              data: { rol: role },
+              data: {
+                rol: role,
+                escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
+              },
             }),
             prisma.cuentaAutorizada.update({
               where: { id: cuentaAutorizada.id },
@@ -54,6 +57,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 registrada: true,
                 nombre: usuario.nombre,
                 rol: role,
+                escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
               },
             }),
           ]);

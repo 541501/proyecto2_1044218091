@@ -23,19 +23,19 @@ const navItems: NavItem[] = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: <Calendar className="h-5 w-5" />,
-    roles: ['PROFESOR', 'ADMIN'],
+    roles: ['PROFESOR', 'ESCUELA', 'ADMIN'],
   },
   {
     label: 'Reservas',
     href: '/dashboard/reservas',
     icon: <BookOpen className="h-5 w-5" />,
-    roles: ['PROFESOR', 'ADMIN'],
+    roles: ['PROFESOR', 'ESCUELA', 'ADMIN'],
   },
   {
     label: 'Sedes',
     href: '/dashboard/sedes',
     icon: <Building2 className="h-5 w-5" />,
-    roles: ['PROFESOR', 'ADMIN'],
+    roles: ['PROFESOR', 'ESCUELA', 'ADMIN'],
   },
   {
     label: 'Admin',

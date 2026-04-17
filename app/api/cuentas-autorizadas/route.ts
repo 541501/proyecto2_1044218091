@@ -47,6 +47,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           data: {
             nombre: data.nombre ?? existente.nombre,
             rol: data.email === CORREO_SUPREMO ? 'ADMIN' : data.rol,
+            escuela: data.rol === 'ESCUELA' ? data.escuela ?? existente.escuela : null,
             activa: true,
           },
         })
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             nombre: data.nombre,
             email: data.email,
             rol: data.email === CORREO_SUPREMO ? 'ADMIN' : data.rol,
+            escuela: data.rol === 'ESCUELA' ? data.escuela : null,
             activa: true,
           },
         });

@@ -24,19 +24,19 @@ const navItems: NavItem[] = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: <Calendar className="h-5 w-5" />,
-    roles: ['PROFESOR', 'ADMIN'],
+    roles: ['PROFESOR', 'ESCUELA', 'ADMIN'],
   },
   {
     label: 'Mis Reservas',
     href: '/dashboard/reservas',
     icon: <BookOpen className="h-5 w-5" />,
-    roles: ['PROFESOR', 'ADMIN'],
+    roles: ['PROFESOR', 'ESCUELA', 'ADMIN'],
   },
   {
     label: 'Sedes',
     href: '/dashboard/sedes',
     icon: <Building2 className="h-5 w-5" />,
-    roles: ['PROFESOR', 'ADMIN'],
+    roles: ['PROFESOR', 'ESCUELA', 'ADMIN'],
   },
   {
     label: 'Administracion',
@@ -106,7 +106,10 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
 
       <div className="absolute bottom-0 left-0 right-0 border-t border-slate-200 bg-slate-50 p-4">
         <p className="text-xs text-slate-600">
-          Rol: <span className="font-semibold">{isAdmin ? 'Administrador' : 'Profesor'}</span>
+          Rol:{' '}
+          <span className="font-semibold">
+            {isAdmin ? 'Administrador' : userRole === 'ESCUELA' ? 'Escuela' : 'Profesor'}
+          </span>
         </p>
       </div>
     </aside>

@@ -49,9 +49,9 @@ export async function obtenerUserId(): Promise<string> {
   return getSessionUser(session).id;
 }
 
-export async function obtenerRolUsuario(): Promise<'ADMIN' | 'PROFESOR'> {
+export async function obtenerRolUsuario(): Promise<'ADMIN' | 'ESCUELA' | 'PROFESOR'> {
   const session = await verificarSesion();
-  return getSessionUser(session).role as 'ADMIN' | 'PROFESOR';
+  return getSessionUser(session).role as 'ADMIN' | 'ESCUELA' | 'PROFESOR';
 }
 
 export async function verificarAdmin() {

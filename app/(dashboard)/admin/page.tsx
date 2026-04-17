@@ -37,7 +37,8 @@ interface CuentaAutorizada {
   id: string;
   email: string;
   nombre: string | null;
-  rol: 'ADMIN' | 'PROFESOR';
+  rol: 'ADMIN' | 'ESCUELA' | 'PROFESOR';
+  escuela: string | null;
   activa: boolean;
   registrada: boolean;
 }
@@ -51,7 +52,8 @@ export default function AdminPage() {
   const { data: session } = useSession();
   const [email, setEmail] = useState('');
   const [nombre, setNombre] = useState('');
-  const [rol, setRol] = useState<'ADMIN' | 'PROFESOR'>('PROFESOR');
+  const [rol, setRol] = useState<'ADMIN' | 'ESCUELA' | 'PROFESOR'>('PROFESOR');
+  const [escuela, setEscuela] = useState('');
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -120,6 +122,7 @@ export default function AdminPage() {
           email,
           nombre: nombre || undefined,
           rol,
+          escuela: rol === 'ESCUELA' ? escuela || undefined : undefined,
         }),
       });
 
@@ -134,6 +137,7 @@ export default function AdminPage() {
       setEmail('');
       setNombre('');
       setRol('PROFESOR');
+      setEscuela('');
       await Promise.all([refetchCuentas(), refetchStats()]);
     } catch (error) {
       setFormError('No se pudo guardar la cuenta autorizada');
@@ -309,13 +313,28 @@ export default function AdminPage() {
               <label className="mb-2 block text-sm font-medium text-slate-700">Rol permitido</label>
               <select
                 value={rol}
-                onChange={(event) => setRol(event.target.value as 'ADMIN' | 'PROFESOR')}
+                onChange={(event) => setRol(event.target.value as 'ADMIN' | 'ESCUELA' | 'PROFESOR')}
                 className="w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
               >
                 <option value="PROFESOR">Profesor</option>
+                <option value="ESCUELA">Escuela</option>
                 <option value="ADMIN">Administrador</option>
               </select>
             </div>
+
+            {rol === 'ESCUELA' && (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Escuela</label>
+                <input
+                  type="text"
+                  value={escuela}
+                  onChange={(event) => setEscuela(event.target.value)}
+                  placeholder="Ej: Escuela de Ingenieria"
+                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  required
+                />
+              </div>
+            )}
 
             <button
               type="submit"
@@ -343,7 +362,9 @@ export default function AdminPage() {
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-slate-900">{cuenta.email}</p>
                     <p className="text-sm text-slate-600">
-                      {cuenta.nombre || 'Sin nombre'} · {cuenta.rol} · {cuenta.registrada ? 'Registrada' : 'Pendiente'}
+                      {cuenta.nombre || 'Sin nombre'} | {cuenta.rol}
+                      {cuenta.escuela ? ` | ${cuenta.escuela}` : ''}
+                      {cuenta.registrada ? ' | Registrada' : ' | Pendiente'}
                     </p>
                   </div>
 
