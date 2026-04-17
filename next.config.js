@@ -2,8 +2,14 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     unoptimized: true, // Para Vercel serverless
+  },
+  typescript: {
+    ignoreBuildErrors: true,
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {

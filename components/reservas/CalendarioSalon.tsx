@@ -1,30 +1,43 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
-import { format, addDays, isSameDay } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+interface SlotApi {
+  horaInicio: string;
+  horaFin: string;
+}
+
+interface DisponibilidadResponse {
+  success: boolean;
+  data: {
+    salonId: string;
+    fecha: string;
+    slotsDisponibles: SlotApi[];
+    count: number;
+  };
+}
+
 interface Slot {
-  hora: string; // "HH:MM"
-  estado: 'libre' | 'ocupado' | 'propio';
-  reservaId?: string;
+  hora: string;
+  estado: 'libre' | 'ocupado';
 }
 
 interface CalendarioSalonProps {
   salonId: string;
   fecha: Date;
   onFechaChange: (date: Date) => void;
-  selectedSlots: string[]; // Array de horas seleccionadas "HH:MM"
+  selectedSlots: string[];
   onSlotSelect: (hora: string) => void;
   onSlotDeselect: (hora: string) => void;
 }
 
-const HORAS_DISPONIBLES = Array.from({ length: 16 }, (_, i) => {
-  const hour = 7 + i;
+const HORAS_DISPONIBLES = Array.from({ length: 16 }, (_, index) => {
+  const hour = 7 + index;
   return `${String(hour).padStart(2, '0')}:00`;
 });
 
@@ -36,11 +49,9 @@ export default function CalendarioSalon({
   onSlotSelect,
   onSlotDeselect,
 }: CalendarioSalonProps) {
-  const { data: session } = useSession();
   const [horaInicio, setHoraInicio] = useState<string | null>(null);
   const [horaFin, setHoraFin] = useState<string | null>(null);
 
-  // Fetch disponibilidad del salón para la fecha seleccionada
   const { data: slots, isLoading, refetch } = useQuery({
     queryKey: ['disponibilidad', salonId, format(fecha, 'yyyy-MM-dd')],
     queryFn: async () => {
@@ -48,26 +59,36 @@ export default function CalendarioSalon({
         `/api/salones/${salonId}/disponibilidad?fecha=${format(fecha, 'yyyy-MM-dd')}`
       );
       if (!response.ok) throw new Error('Failed to fetch availability');
-      return response.json() as Promise<Slot[]>;
+
+      const payload = (await response.json()) as DisponibilidadResponse;
+      const libres = new Set(payload.data.slotsDisponibles.map((slot) => slot.horaInicio));
+
+      return HORAS_DISPONIBLES.map((hora) => ({
+        hora,
+        estado: libres.has(hora) ? 'libre' : 'ocupado',
+      })) as Slot[];
     },
-    refetchInterval: 60000, // Revalidar cada 60 segundos
-    staleTime: 30000, // Considerar fresco por 30s
+    enabled: !!salonId,
+    refetchInterval: 60000,
+    staleTime: 30000,
   });
 
-  // Revalidar cuando cambia la fecha
   useEffect(() => {
     refetch();
   }, [fecha, refetch]);
 
   const handleSlotClick = (hora: string) => {
-    const slot = slots?.find((s) => s.hora === hora);
-    if (!slot || slot.estado === 'ocupado') return;
+    const slot = slots?.find((item) => item.hora === hora);
+    if (!slot || slot.estado === 'ocupado') {
+      return;
+    }
 
     if (selectedSlots.includes(hora)) {
       onSlotDeselect(hora);
-    } else {
-      onSlotSelect(hora);
+      return;
     }
+
+    onSlotSelect(hora);
   };
 
   const handlePrevDay = () => {
@@ -78,40 +99,15 @@ export default function CalendarioSalon({
     onFechaChange(addDays(fecha, 1));
   };
 
-  const handleSelectRange = (start: string, end: string) => {
-    const startIndex = HORAS_DISPONIBLES.indexOf(start);
-    const endIndex = HORAS_DISPONIBLES.indexOf(end);
-
-    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
-      return;
-    }
-
-    const range = HORAS_DISPONIBLES.slice(startIndex, endIndex + 1);
-    const allSelectable = range.every(
-      (h) => !slots?.find((s) => s.hora === h)?.estado?.includes('ocupado')
-    );
-
-    if (allSelectable) {
-      range.forEach((h) => {
-        if (!selectedSlots.includes(h)) {
-          onSlotSelect(h);
-        }
-      });
-      setHoraInicio(start);
-      setHoraFin(end);
-    }
-  };
-
-  // Loading skeleton
   if (isLoading || !slots) {
     return (
       <div className="space-y-4">
-        <div className="h-10 bg-slate-200 rounded animate-pulse" />
+        <div className="h-10 animate-pulse rounded bg-slate-200" />
         <div className="grid grid-cols-4 gap-2">
           {Array(16)
             .fill(0)
-            .map((_, i) => (
-              <div key={i} className="h-12 bg-slate-200 rounded animate-pulse" />
+            .map((_, index) => (
+              <div key={index} className="h-12 animate-pulse rounded bg-slate-200" />
             ))}
         </div>
       </div>
@@ -120,14 +116,13 @@ export default function CalendarioSalon({
 
   return (
     <div className="space-y-4">
-      {/* Header con navegación de días */}
       <div className="flex items-center justify-between">
         <button
           onClick={handlePrevDay}
-          className="p-2 hover:bg-slate-100 rounded transition-colors"
-          aria-label="Día anterior"
+          className="rounded p-2 transition-colors hover:bg-slate-100"
+          aria-label="Dia anterior"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="h-5 w-5" />
         </button>
 
         <div className="text-center">
@@ -138,16 +133,15 @@ export default function CalendarioSalon({
 
         <button
           onClick={handleNextDay}
-          className="p-2 hover:bg-slate-100 rounded transition-colors"
-          aria-label="Día siguiente"
+          className="rounded p-2 transition-colors hover:bg-slate-100"
+          aria-label="Dia siguiente"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Información de rango seleccionado */}
       {horaInicio && horaFin && (
-        <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-700 border border-blue-200">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
           Rango seleccionado: <span className="font-semibold">{horaInicio} - {horaFin}</span>
           <button
             onClick={() => {
@@ -155,43 +149,39 @@ export default function CalendarioSalon({
               setHoraFin(null);
               selectedSlots.forEach(onSlotDeselect);
             }}
-            className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+            className="ml-2 text-xs text-blue-600 underline hover:text-blue-800"
           >
             Limpiar
           </button>
         </div>
       )}
 
-      {/* Grid de slots */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
         {HORAS_DISPONIBLES.map((hora) => {
-          const slot = slots.find((s) => s.hora === hora);
+          const slot = slots.find((item) => item.hora === hora);
           const isSelected = selectedSlots.includes(hora);
           const isOccupied = slot?.estado === 'ocupado';
-          const isOwn = slot?.estado === 'propio';
 
           return (
             <button
               key={hora}
-              onClick={() => handleSlotClick(hora)}
+              onClick={() => {
+                handleSlotClick(hora);
+                if (!isSelected && !isOccupied) {
+                  setHoraInicio(selectedSlots[0] || hora);
+                  setHoraFin(hora);
+                }
+              }}
               disabled={isOccupied}
               className={cn(
-                'py-3 px-2 rounded-lg text-sm font-semibold transition-all duration-150 border-2',
+                'rounded-lg border-2 px-2 py-3 text-sm font-semibold transition-all duration-150',
                 isSelected && !isOccupied
-                  ? 'bg-blue-600 text-white border-blue-700 shadow-lg'
+                  ? 'border-blue-700 bg-blue-600 text-white shadow-lg'
                   : isOccupied
-                    ? 'bg-slate-100 text-slate-400 border-slate-300 cursor-not-allowed opacity-60'
-                    : isOwn
-                      ? 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 hover:shadow-md'
-                      : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 hover:shadow-md cursor-pointer'
+                    ? 'cursor-not-allowed border-slate-300 bg-slate-100 text-slate-400 opacity-60'
+                    : 'cursor-pointer border-green-300 bg-green-100 text-green-700 hover:bg-green-200 hover:shadow-md'
               )}
-              title={
-                isOccupied
-                  ? `Ocupado ${slot?.reservaId ? `(ID: ${slot.reservaId})` : ''}`
-                  : isOwn
-                    ? 'Tu reserva'
-                    : 'Disponible - Haz clic para seleccionar'
-              }
+              title={isOccupied ? 'Ocupado' : 'Disponible - Haz clic para seleccionar'}
             >
               {hora}
             </button>
@@ -199,19 +189,14 @@ export default function CalendarioSalon({
         })}
       </div>
 
-      {/* Info footer */}
-      <div className="text-xs text-slate-600 space-y-1">
+      <div className="space-y-1 text-xs text-slate-600">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-green-100 border border-green-300 rounded" />
+          <div className="h-4 w-4 rounded border border-green-300 bg-green-100" />
           <span>Disponible</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-slate-100 border border-slate-300 rounded" />
+          <div className="h-4 w-4 rounded border border-slate-300 bg-slate-100" />
           <span>Ocupado</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-blue-100 border border-blue-300 rounded" />
-          <span>Tu reserva existente</span>
         </div>
       </div>
     </div>

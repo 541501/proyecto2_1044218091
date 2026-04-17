@@ -1,31 +1,15 @@
-/**
- * app/api/sedes/[sedeId]/route.ts
- *
- * GET: Obtener detalle de sede
- * PUT: Actualizar sede (solo ADMIN)
- * DELETE: Eliminar sede (solo ADMIN)
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleApiError, notFound } from '@/lib/utils/errores-api';
+import { handleAuthError, verificarAdmin } from '@/lib/utils/auth';
 import {
-  handleApiError,
-  notFound,
-} from '@/lib/utils/errores-api';
-import {
-  verificarAdmin,
-  handleAuthError,
-} from '@/lib/utils/auth';
-import {
-  validarBody,
   ActualizarSedeSchema,
+  type ActualizarSedeInput,
+  validarBody,
 } from '@/lib/validations';
 
-/**
- * GET /api/sedes/[sedeId]
- */
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { sedeId: string } }
 ): Promise<NextResponse> {
   try {
@@ -53,21 +37,13 @@ export async function GET(
   }
 }
 
-/**
- * PUT /api/sedes/[sedeId]
- * Actualizar sede (solo ADMIN)
- */
 export async function PUT(
   req: NextRequest,
   { params }: { params: { sedeId: string } }
 ): Promise<NextResponse> {
   try {
     await verificarAdmin();
-
-    const data = await validarBody(
-      ActualizarSedeSchema,
-      req
-    );
+    const data = await validarBody<ActualizarSedeInput>(ActualizarSedeSchema, req);
 
     const sede = await prisma.sede.update({
       where: { id: params.sedeId },
@@ -87,12 +63,8 @@ export async function PUT(
   }
 }
 
-/**
- * DELETE /api/sedes/[sedeId]
- * Eliminar sede (solo ADMIN)
- */
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { sedeId: string } }
 ): Promise<NextResponse> {
   try {

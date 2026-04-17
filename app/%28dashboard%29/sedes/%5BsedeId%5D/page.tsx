@@ -21,8 +21,13 @@ interface Bloque {
 interface Sede {
   id: string;
   nombre: string;
-  direccion: string;
+  ubicacion: string;
   bloques: Bloque[];
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
 }
 
 export default function SedeDetailPage() {
@@ -34,8 +39,10 @@ export default function SedeDetailPage() {
     queryFn: async () => {
       const response = await fetch(`/api/sedes/${sedeId}`);
       if (!response.ok) throw new Error('Failed to fetch sede');
-      return response.json() as Promise<Sede>;
+      const payload = (await response.json()) as ApiResponse<Sede>;
+      return payload.data;
     },
+    enabled: !!sedeId,
   });
 
   if (isLoading) {
@@ -44,31 +51,26 @@ export default function SedeDetailPage() {
 
   if (!sede) {
     return (
-      <div className="py-8 px-6">
+      <div className="px-6 py-8">
         <p className="text-red-600">Sede no encontrada</p>
       </div>
     );
   }
 
-  const totalSalones = sede.bloques.reduce((sum, b) => sum + b.salones.length, 0);
+  const totalSalones = sede.bloques.reduce((sum, bloque) => sum + bloque.salones.length, 0);
 
   return (
-    <div className="space-y-6 py-8 px-6">
-      {/* Header */}
+    <div className="space-y-6 px-6 py-8">
       <div className="flex items-center gap-4">
-        <Link
-          href="/dashboard/sedes"
-          className="p-2 hover:bg-slate-100 rounded transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5" />
+        <Link href="/dashboard/sedes" className="rounded p-2 transition-colors hover:bg-slate-100">
+          <ChevronLeft className="h-5 w-5" />
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-slate-900">{sede.nombre}</h1>
-          <p className="text-slate-600">{sede.direccion}</p>
+          <p className="text-slate-600">{sede.ubicacion}</p>
         </div>
       </div>
 
-      {/* Stats */}
       <div className="flex gap-4">
         <div className="rounded-lg bg-blue-50 px-4 py-2 text-sm">
           <span className="font-semibold text-blue-900">{sede.bloques.length}</span>
@@ -80,27 +82,24 @@ export default function SedeDetailPage() {
         </div>
       </div>
 
-      {/* Bloques y salones */}
       <div className="space-y-8">
         {sede.bloques.map((bloque) => (
           <div key={bloque.id} className="space-y-3">
             <h2 className="text-lg font-bold text-slate-900">{bloque.nombre}</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {bloque.salones.map((salon) => (
                 <Link
                   key={salon.id}
                   href={`/dashboard/reservas/nueva?salonId=${salon.id}`}
-                  className="group rounded-lg border border-slate-200 bg-white p-4 hover:border-blue-300 hover:shadow-md transition-all"
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-blue-300 hover:shadow-md"
                 >
-                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-blue-100 transition-colors">
-                    <DoorOpen className="w-5 h-5 text-slate-600 group-hover:text-blue-600" />
+                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 transition-colors group-hover:bg-blue-100">
+                    <DoorOpen className="h-5 w-5 text-slate-600 group-hover:text-blue-600" />
                   </div>
 
-                  <h3 className="font-semibold text-slate-900 mb-1">{salon.nombre}</h3>
-                  <p className="text-xs text-slate-600">
-                    Capacidad: {salon.capacidad} personas
-                  </p>
+                  <h3 className="mb-1 font-semibold text-slate-900">{salon.nombre}</h3>
+                  <p className="text-xs text-slate-600">Capacidad: {salon.capacidad} personas</p>
                 </Link>
               ))}
             </div>

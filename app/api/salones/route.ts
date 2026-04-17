@@ -1,46 +1,23 @@
-/**
- * app/api/salones/route.ts
- *
- * GET: Listar salones (con filtros por sede/bloque) (público)
- * POST: Crear salón (solo ADMIN)
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleApiError } from '@/lib/utils/errores-api';
+import { handleAuthError, verificarAdmin } from '@/lib/utils/auth';
 import {
-  handleApiError,
-} from '@/lib/utils/errores-api';
-import {
-  verificarAdmin,
-  handleAuthError,
-} from '@/lib/utils/auth';
-import {
-  validarBody,
   CrearSalonSchema,
+  type CrearSalonInput,
+  validarBody,
 } from '@/lib/validations';
 
-/**
- * GET /api/salones?sedeId=X&bloqueId=Y
- * Listar salones con filtros opcionales
- */
-export async function GET(
-  req: NextRequest
-): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(req.url);
     const sedeId = searchParams.get('sedeId');
-    const bloqueId = searchParams.get(
-      'bloqueId'
-    );
+    const bloqueId = searchParams.get('bloqueId');
 
     const salones = await prisma.salon.findMany({
       where: {
-        ...(bloqueId && {
-          bloqueId,
-        }),
-        ...(sedeId && !bloqueId && {
-          bloque: { sedeId },
-        }),
+        ...(bloqueId && { bloqueId }),
+        ...(sedeId && !bloqueId && { bloque: { sedeId } }),
       },
       include: {
         bloque: {
@@ -63,30 +40,27 @@ export async function GET(
   }
 }
 
-/**
- * POST /api/salones
- * Crear salón (solo ADMIN)
- *
- * Body:
- * {
- *   "nombre": "A101",
- *   "capacidad": 40,
- *   "bloqueId": "cuid..."
- * }
- */
-export async function POST(
-  req: NextRequest
-): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     await verificarAdmin();
+    const data = await validarBody<CrearSalonInput>(CrearSalonSchema, req);
 
-    const data = await validarBody(
-      CrearSalonSchema,
-      req
-    );
+    const bloque = await prisma.bloque.findUnique({
+      where: { id: data.bloqueId },
+      select: { sedeId: true },
+    });
+
+    if (!bloque) {
+      throw new Error('Bloque no encontrado');
+    }
 
     const salon = await prisma.salon.create({
-      data,
+      data: {
+        nombre: data.nombre,
+        capacidad: data.capacidad,
+        bloqueId: data.bloqueId,
+        sedeId: bloque.sedeId,
+      },
       include: {
         bloque: {
           include: { sede: true },

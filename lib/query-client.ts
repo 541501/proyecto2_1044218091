@@ -1,5 +1,9 @@
 import { QueryClient } from '@tanstack/react-query';
 
+type QueryErrorWithStatus = Error & {
+  status?: number;
+};
+
 /**
  * Crea una nueva instancia de QueryClient con configuración óptima para ClassSport
  * 
@@ -19,7 +23,7 @@ export const createQueryClient = () =>
         retry: (failureCount, error) => {
           // No reintentar errores 401/403 (auth), ni 404 (not found), ni 409 (conflict)
           if (error instanceof Error) {
-            const status = (error as any).status;
+            const status = (error as QueryErrorWithStatus).status;
             if (status === 401 || status === 403 || status === 404 || status === 409) {
               return false;
             }

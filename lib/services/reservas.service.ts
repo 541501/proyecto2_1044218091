@@ -1,67 +1,104 @@
-/**
- * lib/services/reservas.service.ts
- *
- * LÓGICA CRÍTICA DE LA APLICACIÓN
- *
- * Esta es la CAPA 2 de la TRIPLE PROTECCIÓN contra conflictos:
- * Capa 1: UI (calendario) previene conflictos en tiempo real
- * Capa 2: SERVICIO (transacción + SELECT...FOR UPDATE) — bloqueo pesimista
- * Capa 3: BD (UNIQUE constraint) — fallback final
- *
- * El flujo de crearReserva es atómico:
- * BEGIN TRANSACTION
- *   SELECT reservas WHERE salon_id=X AND fecha=Y FOR UPDATE
- *   IF hay conflicto: ROLLBACK + throw ConflictoHorarioError
- *   ELSE: INSERT reserva + COMMIT
- * END
- *
- * El FOR UPDATE bloquea las filas, previniendo race conditions entre
- * requests concurrentes. Sin FOR UPDATE, dos requests podría leer
- * "sin reservas" antes de que cualquiera escriba, violando UNIQUE.
- */
-
+import type { Prisma, Reserva } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import {
-  detectarConflicto,
-  HorarioReserva,
-} from '@/lib/utils/horarios';
+import { detectarConflicto } from '@/lib/utils/horarios';
 import {
   ConflictoHorarioError,
-  NotFoundError,
   ForbiddenError,
+  NotFoundError,
 } from '@/lib/utils/errores';
 
-/**
- * Interfaz para datos de entrada de crear reserva
- */
 export interface CrearReservaParams {
   usuarioId: string;
   salonId: string;
-  fecha: string; // YYYY-MM-DD
-  horaInicio: string; // HH:MM
-  horaFin: string; // HH:MM
+  fecha: string;
+  horaInicio: string;
+  horaFin: string;
   nombreClase: string;
   descripcion?: string;
 }
 
-/**
- * FUNCIÓN CRÍTICA: Crear reserva con protección contra conflictos
- *
- * LÓGICA:
- * 1. Verificar que el salón existe
- * 2. TRANSACCIÓN ATÓMICA:
- *    a. SELECT reservas con FOR UPDATE (bloquea pesimista)
- *    b. Detectar conflictos usando hayConflicto()
- *    c. Si hay conflicto: lanzar error (ROLLBACK automático)
- *    d. Si no hay conflicto: INSERT reserva (COMMIT)
- *
- * IMPORTANTE: Sin FOR UPDATE, dos requests concurrentes leería ambos
- * "sin reservas" e insertaría dos registros, violando UNIQUE.
- * Con FOR UPDATE, solo uno lee antes que el otro escriba.
- */
+type ReservaConUsuarioYSalon = Prisma.ReservaGetPayload<{
+  include: {
+    usuario: true;
+    salon: {
+      include: {
+        bloque: {
+          include: { sede: true };
+        };
+      };
+    };
+  };
+}>;
+
+type ReservaConSalon = Prisma.ReservaGetPayload<{
+  include: {
+    salon: {
+      include: {
+        bloque: {
+          include: { sede: true };
+        };
+      };
+    };
+  };
+}>;
+
+type PrismaErrorWithCode = {
+  code?: string;
+};
+
+export type ReservaView = ReservaConSalon & {
+  nombreClase: string;
+  descripcionDetalle?: string;
+};
+
+export type ReservaDetalleView = ReservaConUsuarioYSalon & {
+  nombreClase: string;
+  descripcionDetalle?: string;
+};
+
+function serializarDescripcionReserva(
+  nombreClase: string,
+  descripcion?: string
+) {
+  return descripcion?.trim()
+    ? `${nombreClase}\n${descripcion.trim()}`
+    : nombreClase;
+}
+
+function extraerContenidoReserva(descripcion: string | null) {
+  if (!descripcion) {
+    return {
+      nombreClase: 'Reserva',
+      descripcionDetalle: undefined,
+    };
+  }
+
+  const [nombreClase, ...resto] = descripcion.split('\n');
+  return {
+    nombreClase: nombreClase || 'Reserva',
+    descripcionDetalle: resto.join('\n').trim() || undefined,
+  };
+}
+
+function mapReservaConSalon(reserva: ReservaConSalon): ReservaView {
+  return {
+    ...reserva,
+    ...extraerContenidoReserva(reserva.descripcion),
+  };
+}
+
+function mapReservaConUsuarioYSalon(
+  reserva: ReservaConUsuarioYSalon
+): ReservaDetalleView {
+  return {
+    ...reserva,
+    ...extraerContenidoReserva(reserva.descripcion),
+  };
+}
+
 export async function crearReserva(
   params: CrearReservaParams
-): Promise<any> {
+): Promise<ReservaDetalleView> {
   const {
     usuarioId,
     salonId,
@@ -72,89 +109,73 @@ export async function crearReserva(
     descripcion,
   } = params;
 
-  // Validación: salón existe
   const salon = await prisma.salon.findUnique({
     where: { id: salonId },
   });
 
   if (!salon) {
-    throw new NotFoundError(
-      'El salón no existe'
-    );
+    throw new NotFoundError('El salon no existe');
   }
 
-  // TRANSACCIÓN: Lógica atómica de bloqueo pesimista
   try {
-    const resultado = await prisma.$transaction(
-      async (tx) => {
-        // PASO 1: SELECT con FOR UPDATE (bloqueo pesimista)
-        // Esto evita race conditions
-        const reservasExistentes =
-          await tx.reserva.findMany({
-            where: {
-              salonId,
-              fecha: new Date(fecha),
-              estado: 'CONFIRMADA',
-            },
-          });
+    const resultado = await prisma.$transaction(async (tx) => {
+      const reservasExistentes = await tx.reserva.findMany({
+        where: {
+          salonId,
+          fecha: new Date(fecha),
+          estado: 'CONFIRMADA',
+        },
+      });
 
-        // PASO 2: Detectar conflictos
-        const hayConflictoExistente =
-          detectarConflicto(
-            horaInicio,
-            horaFin,
-            reservasExistentes.map((r) => ({
-              horaInicio: r.horaInicio,
-              horaFin: r.horaFin,
-            }))
-          );
+      const hayConflictoExistente = detectarConflicto(
+        horaInicio,
+        horaFin,
+        reservasExistentes.map((reserva) => ({
+          horaInicio: reserva.horaInicio,
+          horaFin: reserva.horaFin,
+        }))
+      );
 
-        if (hayConflictoExistente) {
-          throw new ConflictoHorarioError(
-            `El salón ${salon.nombre} está ocupado en ese horario`
-          );
-        }
+      if (hayConflictoExistente) {
+        throw new ConflictoHorarioError(
+          `El salon ${salon.nombre} esta ocupado en ese horario`
+        );
+      }
 
-        // PASO 3: INSERT (el transaction se commiteará si todo OK)
-        const reserva = await tx.reserva.create({
-          data: {
-            usuarioId,
-            salonId,
-            fecha: new Date(fecha),
-            horaInicio,
-            horaFin,
-            nombreClase,
-            descripcion: descripcion || null,
-            estado: 'CONFIRMADA',
-          },
-          include: {
-            usuario: true,
-            salon: {
-              include: {
-                bloque: {
-                  include: { sede: true },
-                },
+      return tx.reserva.create({
+        data: {
+          usuarioId,
+          salonId,
+          fecha: new Date(fecha),
+          horaInicio,
+          horaFin,
+          descripcion: serializarDescripcionReserva(nombreClase, descripcion),
+          estado: 'CONFIRMADA',
+        },
+        include: {
+          usuario: true,
+          salon: {
+            include: {
+              bloque: {
+                include: { sede: true },
               },
             },
           },
-        });
+        },
+      });
+    });
 
-        return reserva;
-      }
-    );
-
-    return resultado;
+    return mapReservaConUsuarioYSalon(resultado);
   } catch (error) {
-    // Si es ConflictoHorarioError, re-throw
+    const prismaError = error as PrismaErrorWithCode;
+
     if (error instanceof ConflictoHorarioError) {
       throw error;
     }
 
-    // Si es error de Prisma P2002 (UNIQUE), es un conflicto
-    // (fallback de la Capa 3)
-    if ((error as any)?.code === 'P2002') {
+    if (prismaError.code === 'P2002') {
       throw new ConflictoHorarioError(
-        'El horario ya fue reservado en el último momento'
+        'El horario ya fue reservado en el ultimo momento'
       );
     }
 
@@ -162,9 +183,6 @@ export async function crearReserva(
   }
 }
 
-/**
- * Listar reservas del usuario actual
- */
 export async function listarReservasUsuario(
   usuarioId: string,
   filtros?: {
@@ -172,8 +190,8 @@ export async function listarReservasUsuario(
     fechaDesde?: string;
     fechaHasta?: string;
   }
-): Promise<any[]> {
-  return prisma.reserva.findMany({
+): Promise<ReservaView[]> {
+  const reservas = await prisma.reserva.findMany({
     where: {
       usuarioId,
       ...(filtros?.estado && {
@@ -204,11 +222,10 @@ export async function listarReservasUsuario(
       { horaInicio: 'desc' },
     ],
   });
+
+  return reservas.map(mapReservaConSalon);
 }
 
-/**
- * Listar TODAS las reservas (solo ADMIN)
- */
 export async function listarTodasReservas(
   filtros?: {
     estado?: 'CONFIRMADA' | 'CANCELADA';
@@ -216,8 +233,8 @@ export async function listarTodasReservas(
     fechaHasta?: string;
     salonId?: string;
   }
-): Promise<any[]> {
-  return prisma.reserva.findMany({
+): Promise<ReservaDetalleView[]> {
+  const reservas = await prisma.reserva.findMany({
     where: {
       ...(filtros?.estado && {
         estado: filtros.estado,
@@ -251,69 +268,51 @@ export async function listarTodasReservas(
       { horaInicio: 'desc' },
     ],
   });
+
+  return reservas.map(mapReservaConUsuarioYSalon);
 }
 
-/**
- * Cancelar reserva
- * Validar que el usuario sea dueño o admin
- */
 export async function cancelarReserva(
   reservaId: string,
   usuarioId: string,
   esAdmin: boolean
-): Promise<any> {
-  // Obtener reserva
+): Promise<Reserva> {
   const reserva = await prisma.reserva.findUnique({
     where: { id: reservaId },
   });
 
   if (!reserva) {
-    throw new NotFoundError(
-      'La reserva no existe'
-    );
+    throw new NotFoundError('La reserva no existe');
   }
 
-  // Validar autorización
   if (!esAdmin && reserva.usuarioId !== usuarioId) {
     throw new ForbiddenError(
       'No puedes cancelar una reserva que no te pertenece'
     );
   }
 
-  // Validar que está activa
   if (reserva.estado === 'CANCELADA') {
-    throw new Error('La reserva ya está cancelada');
+    throw new Error('La reserva ya esta cancelada');
   }
 
-  // Cancelar
   return prisma.reserva.update({
     where: { id: reservaId },
     data: { estado: 'CANCELADA' },
   });
 }
 
-/**
- * Obtener disponibilidad de un salón en una fecha
- * Retorna lista de horarios libres (slots de 1 hora)
- */
 export async function obtenerDisponibilidad(
   salonId: string,
-  fecha: string // YYYY-MM-DD
-): Promise<
-  { horaInicio: string; horaFin: string }[]
-> {
-  // Validar que salón existe
+  fecha: string
+): Promise<Array<{ horaInicio: string; horaFin: string }>> {
   const salon = await prisma.salon.findUnique({
     where: { id: salonId },
   });
 
   if (!salon) {
-    throw new NotFoundError(
-      'El salón no existe'
-    );
+    throw new NotFoundError('El salon no existe');
   }
 
-  // Obtener reservas activas ese día
   const reservas = await prisma.reserva.findMany({
     where: {
       salonId,
@@ -326,27 +325,18 @@ export async function obtenerDisponibilidad(
     },
   });
 
-  // Generar slots libres (06:00 - 21:00, slots de 60 min)
-  const slots = [];
-  for (
-    let hora = 6;
-    hora < 21;
-    hora++
-  ) {
+  const slots: Array<{ horaInicio: string; horaFin: string }> = [];
+
+  for (let hora = 6; hora < 21; hora++) {
     const horaInicio = `${String(hora).padStart(2, '0')}:00`;
     const horaFin = `${String(hora + 1).padStart(2, '0')}:00`;
 
-    // Verificar si hay conflicto
-    const hayConflictoEnEsteHorario =
-      reservas.some((r) => {
-        const [hInicio] = r.horaInicio.split(':').map(Number);
-        const [hFin] = r.horaFin.split(':').map(Number);
-        // Solapamiento simple por hora
-        return !(
-          hora + 1 <= hInicio ||
-          hora >= hFin
-        );
-      });
+    const hayConflictoEnEsteHorario = reservas.some((reserva) => {
+      const [hInicio = 0] = reserva.horaInicio.split(':').map(Number);
+      const [hFin = 0] = reserva.horaFin.split(':').map(Number);
+
+      return !(hora + 1 <= hInicio || hora >= hFin);
+    });
 
     if (!hayConflictoEnEsteHorario) {
       slots.push({
@@ -359,12 +349,9 @@ export async function obtenerDisponibilidad(
   return slots;
 }
 
-/**
- * Obtener detalle de una reserva
- */
 export async function obtenerReserva(
   reservaId: string
-): Promise<any> {
+): Promise<ReservaDetalleView> {
   const reserva = await prisma.reserva.findUnique({
     where: { id: reservaId },
     include: {
@@ -380,10 +367,8 @@ export async function obtenerReserva(
   });
 
   if (!reserva) {
-    throw new NotFoundError(
-      'La reserva no existe'
-    );
+    throw new NotFoundError('La reserva no existe');
   }
 
-  return reserva;
+  return mapReservaConUsuarioYSalon(reserva);
 }

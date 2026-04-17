@@ -1,21 +1,9 @@
-/**
- * app/api/salones/[salonId]/route.ts
- *
- * GET: Obtener detalle del salón con capacidad y ubicación
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import {
-  handleApiError,
-  notFound,
-} from '@/lib/utils/errores-api';
+import { handleApiError, notFound } from '@/lib/utils/errores-api';
 
-/**
- * GET /api/salones/[salonId]
- */
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { salonId: string } }
 ): Promise<NextResponse> {
   try {
@@ -29,7 +17,7 @@ export async function GET(
     });
 
     if (!salon) {
-      return notFound('Salón no encontrado');
+      return notFound('Salon no encontrado');
     }
 
     return NextResponse.json({

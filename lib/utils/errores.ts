@@ -1,13 +1,6 @@
-/**
- * lib/utils/errores.ts
- *
- * Clases de error personalizadas para la aplicación
- * Centraliza la lógica de manejo de errores de la BD
- */
-
 export class AppError extends Error {
   constructor(
-    public message: string,
+    public override message: string,
     public code: string,
     public status: number = 500
   ) {
@@ -17,7 +10,7 @@ export class AppError extends Error {
 }
 
 export class ConflictoHorarioError extends AppError {
-  constructor(message: string = 'El horario seleccionado está ocupado') {
+  constructor(message: string = 'El horario seleccionado esta ocupado') {
     super(message, 'CONFLICT_HORARIO', 409);
   }
 }
@@ -29,7 +22,7 @@ export class NotFoundError extends AppError {
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message: string = 'No tienes permiso para esta acción') {
+  constructor(message: string = 'No tienes permiso para esta accion') {
     super(message, 'FORBIDDEN', 403);
   }
 }
@@ -42,82 +35,70 @@ export class UnauthorizedError extends AppError {
 
 export class ValidationError extends AppError {
   constructor(
-    message: string = 'Validación fallida',
+    message: string = 'Validacion fallida',
     public details?: Record<string, string[]>
   ) {
     super(message, 'VALIDATION_ERROR', 400);
   }
 }
 
-/**
- * Mapear errores de Prisma a HTTP 4xx/5xx
- * P2002: Unique constraint failed
- * P2025: Record not found
- * P2014: Transaction failed
- * etc.
- */
+type PrismaLikeError = {
+  code?: string;
+  meta?: {
+    target?: string[];
+  };
+};
+
 export function mapearErrorPrisma(
-  error: any
+  error: unknown
 ): {
   status: number;
   code: string;
   message: string;
 } {
-  // Prisma error
-  if (error.code) {
-    switch (error.code) {
+  const prismaError = error as PrismaLikeError;
+
+  if (prismaError.code) {
+    switch (prismaError.code) {
       case 'P2002':
         return {
           status: 409,
           code: 'UNIQUE_CONSTRAINT_FAILED',
-          message: `Campo duplicado: ${
-            error.meta?.target?.[0] || 'valor'
-          }`,
+          message: `Campo duplicado: ${prismaError.meta?.target?.[0] || 'valor'}`,
         };
-
       case 'P2025':
         return {
           status: 404,
           code: 'RECORD_NOT_FOUND',
-          message:
-            'El recurso solicitado no existe',
+          message: 'El recurso solicitado no existe',
         };
-
       case 'P2014':
         return {
           status: 409,
           code: 'TRANSACTION_FAILED',
-          message:
-            'Error de transacción (posible conflicto de horario)',
+          message: 'Error de transaccion (posible conflicto de horario)',
         };
-
       case 'P2003':
         return {
           status: 400,
           code: 'FOREIGN_KEY_CONSTRAINT_FAILED',
-          message:
-            'Referencia inválida a otro recurso',
+          message: 'Referencia invalida a otro recurso',
         };
-
       case 'P2000':
         return {
           status: 400,
           code: 'VALUE_TOO_LONG',
-          message:
-            'El valor es demasiado largo para el campo',
+          message: 'El valor es demasiado largo para el campo',
         };
-
       default:
         return {
           status: 500,
-          code: `PRISMA_${error.code}`,
-          message:
-            'Error en la base de datos',
+          code: `PRISMA_${prismaError.code}`,
+          message: 'Error en la base de datos',
         };
     }
   }
 
-  // AppError
   if (error instanceof AppError) {
     return {
       status: error.status,
@@ -126,11 +107,9 @@ export function mapearErrorPrisma(
     };
   }
 
-  // Generic error
   return {
     status: 500,
     code: 'INTERNAL_SERVER_ERROR',
-    message:
-      'Error interno del servidor',
+    message: 'Error interno del servidor',
   };
 }

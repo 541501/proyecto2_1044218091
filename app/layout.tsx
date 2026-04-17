@@ -16,12 +16,17 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const description =
+    typeof metadata.description === 'string'
+      ? metadata.description
+      : 'Sistema inteligente de reserva de salones de clase';
+
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="theme-color" content="#2563EB" />
-        <meta name="description" content={metadata.description} />
+        <meta name="description" content={description} />
         {/* Preconnect a APIs externas si es necesario */}
       </head>
       <body className="bg-slate-50 text-slate-900 antialiased">

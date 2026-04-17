@@ -1,28 +1,37 @@
 /**
  * lib/utils/auth.ts
  *
- * Utilidades de autenticación y autorización para API Routes
+ * Utilidades de autenticacion y autorizacion para API Routes
  */
 
 import { auth } from '@/auth';
-import { NextRequest, NextResponse } from 'next/server';
-import { UnauthorizedError, ForbiddenError } from './errores';
+import type { Session } from 'next-auth';
+import { NextResponse } from 'next/server';
+import { ForbiddenError, UnauthorizedError } from './errores';
 
-/**
- * Obtener sesión del usuario actual
- * Retorna null si no está autenticado
- */
+type SessionWithUser = Session & {
+  user: Session['user'] & {
+    id: string;
+    role: string;
+  };
+};
+
+function getSessionUser(session: Session | null): SessionWithUser['user'] {
+  if (!session?.user?.id || !session.user.role) {
+    throw new UnauthorizedError(
+      'No se encontraron los datos de usuario en la sesion'
+    );
+  }
+
+  return session.user as SessionWithUser['user'];
+}
+
 export async function obtenerSesion() {
   const session = await auth();
   return session;
 }
 
-/**
- * Verificar que el request tiene sesión válida
- * Lanza UnauthorizedError si no
- * Retorna la sesión
- */
-export async function verificarSesion(req?: NextRequest) {
+export async function verificarSesion(): Promise<SessionWithUser> {
   const session = await obtenerSesion();
 
   if (!session || !session.user) {
@@ -31,54 +40,25 @@ export async function verificarSesion(req?: NextRequest) {
     );
   }
 
-  return session;
+  getSessionUser(session);
+  return session as SessionWithUser;
 }
 
-/**
- * Obtener el userId de la sesión actual
- * Usado en queries para filtrar por usuario
- */
 export async function obtenerUserId(): Promise<string> {
   const session = await verificarSesion();
-  const userId = (session.user as any)?.id;
-
-  if (!userId) {
-    throw new UnauthorizedError(
-      'No se encontró el ID de usuario en la sesión'
-    );
-  }
-
-  return userId;
+  return getSessionUser(session).id;
 }
 
-/**
- * Obtener el rol del usuario actual
- */
-export async function obtenerRolUsuario(): Promise<
-  'ADMIN' | 'PROFESOR'
-> {
+export async function obtenerRolUsuario(): Promise<'ADMIN' | 'PROFESOR'> {
   const session = await verificarSesion();
-  const rol = (session.user as any)?.rol;
-
-  if (!rol) {
-    throw new UnauthorizedError(
-      'No se encontró el rol de usuario'
-    );
-  }
-
-  return rol;
+  return getSessionUser(session).role as 'ADMIN' | 'PROFESOR';
 }
 
-/**
- * Verificar que el usuario es ADMIN
- * Lanza ForbiddenError si es PROFESOR
- * Retorna la sesión
- */
 export async function verificarAdmin() {
   const session = await verificarSesion();
-  const rol = (session.user as any)?.rol;
+  const role = getSessionUser(session).role;
 
-  if (rol !== 'ADMIN') {
+  if (role !== 'ADMIN') {
     throw new ForbiddenError(
       'Solo administradores pueden acceder a este recurso'
     );
@@ -87,35 +67,20 @@ export async function verificarAdmin() {
   return session;
 }
 
-/**
- * Verificar autorización: el usuario es dueño del recurso o es ADMIN
- * Útil para cancelar reserva propia o como admin
- */
 export async function verificarOwnerOAdmin(
   resourceUserId: string
 ): Promise<boolean> {
   const session = await verificarSesion();
-  const userId = (session.user as any)?.id;
-  const rol = (session.user as any)?.rol;
+  const { id: userId, role } = getSessionUser(session);
 
-  // ADMIN siempre puede
-  if (rol === 'ADMIN') {
+  if (role === 'ADMIN') {
     return true;
   }
 
-  // PROFESOR solo puede si es dueño
-  if (userId === resourceUserId) {
-    return true;
-  }
-
-  return false;
+  return userId === resourceUserId;
 }
 
-/**
- * Middleware helper: retorna 401 o 403 NextResponse
- * Usado como catch en API Routes
- */
-export function handleAuthError(error: any): NextResponse {
+export function handleAuthError(error: unknown): NextResponse {
   if (error instanceof UnauthorizedError) {
     return NextResponse.json(
       {
@@ -138,5 +103,5 @@ export function handleAuthError(error: any): NextResponse {
     );
   }
 
-  throw error; // Re-throw para handleApiError
+  throw error;
 }

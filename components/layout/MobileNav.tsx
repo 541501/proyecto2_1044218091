@@ -22,25 +22,25 @@ const navItems: NavItem[] = [
   {
     label: 'Dashboard',
     href: '/dashboard',
-    icon: <Calendar className="w-5 h-5" />,
-    roles: ['PROFESSOR', 'ADMIN'],
+    icon: <Calendar className="h-5 w-5" />,
+    roles: ['PROFESOR', 'ADMIN'],
   },
   {
-    label: 'Mis Reservas',
+    label: 'Reservas',
     href: '/dashboard/reservas',
-    icon: <BookOpen className="w-5 h-5" />,
-    roles: ['PROFESSOR', 'ADMIN'],
+    icon: <BookOpen className="h-5 w-5" />,
+    roles: ['PROFESOR', 'ADMIN'],
   },
   {
     label: 'Sedes',
     href: '/dashboard/sedes',
-    icon: <Building2 className="w-5 h-5" />,
-    roles: ['PROFESSOR', 'ADMIN'],
+    icon: <Building2 className="h-5 w-5" />,
+    roles: ['PROFESOR', 'ADMIN'],
   },
   {
     label: 'Admin',
     href: '/dashboard/admin',
-    icon: <Settings className="w-5 h-5" />,
+    icon: <Settings className="h-5 w-5" />,
     roles: ['ADMIN'],
   },
 ];
@@ -49,7 +49,7 @@ export default function MobileNav() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const userRole = session?.user?.role || 'PROFESSOR';
+  const userRole = session?.user?.role || 'PROFESOR';
   const visibleItems = navItems.filter((item) => !item.roles || item.roles.includes(userRole));
 
   const isActive = (href: string) => pathname === href;

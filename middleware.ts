@@ -1,44 +1,44 @@
 /**
  * middleware.ts
  *
- * Middleware para proteger rutas y redireccionar según autenticación
+ * Middleware para proteger rutas y redireccionar segun autenticacion.
  */
 
-import { NextResponse, type NextRequest } from "next/server";
-import { auth } from "@/auth";
+import { NextResponse, type NextRequest } from 'next/server';
 
-/**
- * Rutas públicas que no requieren autenticación
- */
-const publicRoutes = ["/login", "/registro"];
+const publicRoutes = ['/login', '/registro'];
+const protectedRoutes = ['/dashboard', '/admin', '/reservas'];
+const sessionCookieNames = [
+  'authjs.session-token',
+  '__Secure-authjs.session-token',
+  'next-auth.session-token',
+  '__Secure-next-auth.session-token',
+];
 
-/**
- * Rutas que requieren autenticación
- */
-const protectedRoutes = ["/dashboard", "/admin", "/reservas"];
+function hasSessionCookie(request: NextRequest) {
+  return sessionCookieNames.some((cookieName) =>
+    Boolean(request.cookies.get(cookieName)?.value)
+  );
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isAuthenticated = hasSessionCookie(request);
 
-  // Obtener sesión
-  const session = await auth();
-
-  // Si está en ruta pública pero está autenticado, redireccionar a dashboard
-  if (publicRoutes.includes(pathname) && session) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (publicRoutes.includes(pathname) && isAuthenticated) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Si está en ruta protegida pero no está autenticado, redireccionar a login
   if (
     protectedRoutes.some((route) => pathname.startsWith(route)) &&
-    !session
+    !isAuthenticated
   ) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next|.*\\..*|public).*)"],
+  matcher: ['/((?!_next|.*\\..*|public).*)'],
 };

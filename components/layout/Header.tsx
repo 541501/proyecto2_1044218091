@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { LogOut, Menu } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
 
 interface HeaderProps {
   onMenuClick?: () => void;
