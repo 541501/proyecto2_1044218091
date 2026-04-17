@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const validation = RegistroSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Validación fallida', details: validation.error },
+        { error: 'Validación fallida', details: validation.error.issues },
         { status: 400 }
       );
     }
