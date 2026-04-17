@@ -3,7 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 import * as bcryptjs from 'bcryptjs';
 import { LoginSchema } from '@/lib/validations/usuario.schema';
-import { CORREO_SUPREMO, obtenerCuentaAutorizadaPorEmail, obtenerRolAutorizado } from '@/lib/services/cuentas-autorizadas';
+import { CORREO_SUPREMO } from '@/lib/services/cuentas-autorizadas';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -21,12 +21,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const { email, password } = parsed.data;
-        const cuentaAutorizada = await obtenerCuentaAutorizadaPorEmail(email);
-
-        if (!cuentaAutorizada || !cuentaAutorizada.activa) {
-          return null;
-        }
-
         const usuario = await prisma.usuario.findUnique({
           where: { email },
         });
@@ -40,41 +34,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const role = email === CORREO_SUPREMO ? 'ADMIN' : obtenerRolAutorizado(cuentaAutorizada);
+        const role = email === CORREO_SUPREMO ? 'ADMIN' : usuario.rol;
 
-        if (!cuentaAutorizada.registrada || usuario.rol !== role) {
-          if (cuentaAutorizada.persistida === false) {
-            await prisma.usuario.update({
-              where: { id: usuario.id },
-              data: {
-                rol: role,
-                ...(role === 'ESCUELA' && cuentaAutorizada.escuela
-                  ? { escuela: cuentaAutorizada.escuela }
-                  : {}),
-              },
-            });
-          } else {
-            await prisma.$transaction([
-              prisma.usuario.update({
-                where: { id: usuario.id },
-                data: {
-                  rol: role,
-                  ...(role === 'ESCUELA' && cuentaAutorizada.escuela
-                    ? { escuela: cuentaAutorizada.escuela }
-                    : {}),
-                },
-              }),
-              prisma.cuentaAutorizada.update({
-                where: { id: cuentaAutorizada.id },
-                data: {
-                  registrada: true,
-                  nombre: usuario.nombre,
-                  rol: role,
-                  escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
-                },
-              }),
-            ]);
-          }
+        if (usuario.rol !== role) {
+          await prisma.usuario.update({
+            where: { id: usuario.id },
+            data: { rol: role },
+          });
         }
 
         return {

@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { RegistroApiSchema } from '@/lib/validations/usuario.schema';
-import { obtenerCuentaAutorizadaPorEmail, obtenerRolAutorizado } from '@/lib/services/cuentas-autorizadas';
+import { CORREO_SUPREMO } from '@/lib/services/cuentas-autorizadas';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,59 +30,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cuentaAutorizada = await obtenerCuentaAutorizadaPorEmail(email);
-
-    if (!cuentaAutorizada || !cuentaAutorizada.activa) {
-      return NextResponse.json(
-        { error: 'Tu correo no esta autorizado para crear cuenta. Solicita acceso al administrador.' },
-        { status: 403 }
-      );
-    }
-
-    if (cuentaAutorizada.registrada) {
-      return NextResponse.json(
-        { error: 'Esta cuenta autorizada ya fue utilizada para registrarse.' },
-        { status: 409 }
-      );
-    }
-
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
-    const rol = obtenerRolAutorizado(cuentaAutorizada);
+    const rol = email === CORREO_SUPREMO ? 'ADMIN' : 'PROFESOR';
 
-    const usuario = await prisma.$transaction(async (tx) => {
-      const nuevoUsuario = await tx.usuario.create({
-        data: {
-          nombre,
-          email,
-          password: passwordHash,
-          rol,
-          ...(cuentaAutorizada.rol === 'ESCUELA' && cuentaAutorizada.escuela
-            ? { escuela: cuentaAutorizada.escuela }
-            : {}),
-        },
-        select: {
-          id: true,
-          nombre: true,
-          email: true,
-          rol: true,
-          createdAt: true,
-        },
-      });
-
-      if (cuentaAutorizada.persistida !== false) {
-        await tx.cuentaAutorizada.update({
-          where: { id: cuentaAutorizada.id },
-          data: {
-            nombre,
-            rol,
-            escuela: cuentaAutorizada.rol === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
-            registrada: true,
-          },
-        });
-      }
-
-      return nuevoUsuario;
+    const usuario = await prisma.usuario.create({
+      data: {
+        nombre,
+        email,
+        password: passwordHash,
+        rol,
+      },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        rol: true,
+        createdAt: true,
+      },
     });
 
     return NextResponse.json(usuario, { status: 201 });
