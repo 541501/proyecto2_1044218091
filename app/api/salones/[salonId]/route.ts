@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { ensureDatabaseSchema, prisma } from '@/lib/prisma';
 import { handleApiError, notFound } from '@/lib/utils/errores-api';
 
 export async function GET(
@@ -7,6 +7,7 @@ export async function GET(
   { params }: { params: { salonId: string } }
 ): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     const salon = await prisma.salon.findUnique({
       where: { id: params.salonId },
       include: {

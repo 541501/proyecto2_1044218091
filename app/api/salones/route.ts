@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { ensureDatabaseSchema, prisma } from '@/lib/prisma';
 import { handleApiError } from '@/lib/utils/errores-api';
 import { handleAuthError, verificarAdmin } from '@/lib/utils/auth';
 import {
@@ -10,6 +10,7 @@ import {
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     const { searchParams } = new URL(req.url);
     const sedeId = searchParams.get('sedeId');
     const bloqueId = searchParams.get('bloqueId');
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     await verificarAdmin();
     const data = await validarBody<CrearSalonInput>(CrearSalonSchema, req);
 

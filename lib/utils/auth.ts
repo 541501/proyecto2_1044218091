@@ -8,6 +8,7 @@ import { auth } from '@/auth';
 import type { Session } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { ForbiddenError, UnauthorizedError } from './errores';
+import { ensureDatabaseSchema } from '@/lib/prisma';
 
 type SessionWithUser = Session & {
   user: Session['user'] & {
@@ -27,6 +28,7 @@ function getSessionUser(session: Session | null): SessionWithUser['user'] {
 }
 
 export async function obtenerSesion() {
+  await ensureDatabaseSchema();
   const session = await auth();
   return session;
 }

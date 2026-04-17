@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { ensureDatabaseSchema } from '@/lib/prisma';
 import {
   handleApiError,
   badRequest,
@@ -24,6 +25,7 @@ export async function GET(
   { params }: { params: { salonId: string } }
 ): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     const { searchParams } = new URL(req.url);
     const fecha = searchParams.get('fecha');
 

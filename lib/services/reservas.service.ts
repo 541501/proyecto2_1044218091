@@ -1,5 +1,5 @@
 import type { Prisma, Reserva } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { ensureDatabaseSchema, prisma } from '@/lib/prisma';
 import { detectarConflicto } from '@/lib/utils/horarios';
 import {
   ConflictoHorarioError,
@@ -99,6 +99,7 @@ function mapReservaConUsuarioYSalon(
 export async function crearReserva(
   params: CrearReservaParams
 ): Promise<ReservaDetalleView> {
+  await ensureDatabaseSchema();
   const {
     usuarioId,
     salonId,
@@ -191,6 +192,7 @@ export async function listarReservasUsuario(
     fechaHasta?: string;
   }
 ): Promise<ReservaView[]> {
+  await ensureDatabaseSchema();
   const reservas = await prisma.reserva.findMany({
     where: {
       usuarioId,
@@ -234,6 +236,7 @@ export async function listarTodasReservas(
     salonId?: string;
   }
 ): Promise<ReservaDetalleView[]> {
+  await ensureDatabaseSchema();
   const reservas = await prisma.reserva.findMany({
     where: {
       ...(filtros?.estado && {
@@ -277,6 +280,7 @@ export async function cancelarReserva(
   usuarioId: string,
   esAdmin: boolean
 ): Promise<Reserva> {
+  await ensureDatabaseSchema();
   const reserva = await prisma.reserva.findUnique({
     where: { id: reservaId },
   });
@@ -305,6 +309,7 @@ export async function obtenerDisponibilidad(
   salonId: string,
   fecha: string
 ): Promise<Array<{ horaInicio: string; horaFin: string }>> {
+  await ensureDatabaseSchema();
   const salon = await prisma.salon.findUnique({
     where: { id: salonId },
   });
@@ -352,6 +357,7 @@ export async function obtenerDisponibilidad(
 export async function obtenerReserva(
   reservaId: string
 ): Promise<ReservaDetalleView> {
+  await ensureDatabaseSchema();
   const reserva = await prisma.reserva.findUnique({
     where: { id: reservaId },
     include: {

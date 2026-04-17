@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { ensureDatabaseSchema, prisma } from '@/lib/prisma';
 import { handleApiError, notFound } from '@/lib/utils/errores-api';
 import { handleAuthError, verificarAdmin } from '@/lib/utils/auth';
 import {
@@ -13,6 +13,7 @@ export async function GET(
   { params }: { params: { sedeId: string } }
 ): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     const sede = await prisma.sede.findUnique({
       where: { id: params.sedeId },
       include: {
@@ -42,6 +43,7 @@ export async function PUT(
   { params }: { params: { sedeId: string } }
 ): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     await verificarAdmin();
     const data = await validarBody<ActualizarSedeInput>(ActualizarSedeSchema, req);
 
@@ -68,6 +70,7 @@ export async function DELETE(
   { params }: { params: { sedeId: string } }
 ): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     await verificarAdmin();
 
     await prisma.sede.delete({

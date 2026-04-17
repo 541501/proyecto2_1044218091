@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { ensureDatabaseSchema, prisma } from '@/lib/prisma';
 import { badRequest, handleApiError } from '@/lib/utils/errores-api';
 import { handleAuthError, verificarAdmin } from '@/lib/utils/auth';
 import {
@@ -10,6 +10,7 @@ import {
 
 export async function GET(_req: NextRequest): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     const sedes = await prisma.sede.findMany({
       include: {
         bloques: {
@@ -33,6 +34,7 @@ export async function GET(_req: NextRequest): Promise<NextResponse> {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
+    await ensureDatabaseSchema();
     await verificarAdmin();
     const data = await validarBody<CrearSedeInput>(CrearSedeSchema, req);
 

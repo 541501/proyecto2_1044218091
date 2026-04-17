@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
+import { ensureDatabaseSchema, prisma } from '@/lib/prisma';
 import { RegistroApiSchema } from '@/lib/validations/usuario.schema';
 import { CORREO_SUPREMO } from '@/lib/services/cuentas-autorizadas';
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDatabaseSchema();
     const body = await request.json();
     const validation = RegistroApiSchema.safeParse(body);
 
