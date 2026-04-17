@@ -11,24 +11,42 @@ type CuentaAutorizadaMinima = {
   escuela?: string | null;
   activa: boolean;
   registrada: boolean;
+  persistida?: boolean;
 };
 
+function crearCuentaSupremaVirtual(): CuentaAutorizadaMinima {
+  return {
+    id: 'supremo-juan-gutierrez',
+    email: CORREO_SUPREMO,
+    nombre: 'Juan Gutierrez',
+    rol: 'ADMIN',
+    escuela: null,
+    activa: true,
+    registrada: false,
+    persistida: false,
+  };
+}
+
 export async function asegurarCuentaSuprema() {
-  return prisma.cuentaAutorizada.upsert({
-    where: { email: CORREO_SUPREMO },
-    update: {
-      activa: true,
-      rol: 'ADMIN',
-      nombre: 'Juan Gutierrez',
-    },
-    create: {
-      email: CORREO_SUPREMO,
-      nombre: 'Juan Gutierrez',
-      rol: 'ADMIN',
-      activa: true,
-      registrada: false,
-    },
-  });
+  try {
+    return await prisma.cuentaAutorizada.upsert({
+      where: { email: CORREO_SUPREMO },
+      update: {
+        activa: true,
+        rol: 'ADMIN',
+        nombre: 'Juan Gutierrez',
+      },
+      create: {
+        email: CORREO_SUPREMO,
+        nombre: 'Juan Gutierrez',
+        rol: 'ADMIN',
+        activa: true,
+        registrada: false,
+      },
+    });
+  } catch {
+    return crearCuentaSupremaVirtual();
+  }
 }
 
 export async function obtenerCuentaAutorizadaPorEmail(email: string): Promise<CuentaAutorizadaMinima | null> {
@@ -36,9 +54,13 @@ export async function obtenerCuentaAutorizadaPorEmail(email: string): Promise<Cu
     return asegurarCuentaSuprema();
   }
 
-  return prisma.cuentaAutorizada.findUnique({
-    where: { email },
-  });
+  try {
+    return await prisma.cuentaAutorizada.findUnique({
+      where: { email },
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function obtenerRolAutorizado(cuenta: CuentaAutorizadaMinima | null): RolAutorizado {

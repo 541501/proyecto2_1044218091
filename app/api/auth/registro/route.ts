@@ -69,15 +69,17 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      await tx.cuentaAutorizada.update({
-        where: { id: cuentaAutorizada.id },
-        data: {
-          nombre,
-          rol,
-          escuela: cuentaAutorizada.rol === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
-          registrada: true,
-        },
-      });
+      if (cuentaAutorizada.persistida !== false) {
+        await tx.cuentaAutorizada.update({
+          where: { id: cuentaAutorizada.id },
+          data: {
+            nombre,
+            rol,
+            escuela: cuentaAutorizada.rol === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
+            registrada: true,
+          },
+        });
+      }
 
       return nuevoUsuario;
     });

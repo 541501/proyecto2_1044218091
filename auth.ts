@@ -43,24 +43,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const role = email === CORREO_SUPREMO ? 'ADMIN' : obtenerRolAutorizado(cuentaAutorizada);
 
         if (!cuentaAutorizada.registrada || usuario.rol !== role) {
-          await prisma.$transaction([
-            prisma.usuario.update({
+          if (cuentaAutorizada.persistida === false) {
+            await prisma.usuario.update({
               where: { id: usuario.id },
               data: {
                 rol: role,
                 escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
               },
-            }),
-            prisma.cuentaAutorizada.update({
-              where: { id: cuentaAutorizada.id },
-              data: {
-                registrada: true,
-                nombre: usuario.nombre,
-                rol: role,
-                escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
-              },
-            }),
-          ]);
+            });
+          } else {
+            await prisma.$transaction([
+              prisma.usuario.update({
+                where: { id: usuario.id },
+                data: {
+                  rol: role,
+                  escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
+                },
+              }),
+              prisma.cuentaAutorizada.update({
+                where: { id: cuentaAutorizada.id },
+                data: {
+                  registrada: true,
+                  nombre: usuario.nombre,
+                  rol: role,
+                  escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
+                },
+              }),
+            ]);
+          }
         }
 
         return {
