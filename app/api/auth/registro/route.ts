@@ -57,14 +57,15 @@ export async function POST(request: NextRequest) {
           email,
           password: passwordHash,
           rol,
-          escuela: cuentaAutorizada.rol === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
+          ...(cuentaAutorizada.rol === 'ESCUELA' && cuentaAutorizada.escuela
+            ? { escuela: cuentaAutorizada.escuela }
+            : {}),
         },
         select: {
           id: true,
           nombre: true,
           email: true,
           rol: true,
-          escuela: true,
           createdAt: true,
         },
       });

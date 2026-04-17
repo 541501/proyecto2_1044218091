@@ -48,7 +48,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               where: { id: usuario.id },
               data: {
                 rol: role,
-                escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
+                ...(role === 'ESCUELA' && cuentaAutorizada.escuela
+                  ? { escuela: cuentaAutorizada.escuela }
+                  : {}),
               },
             });
           } else {
@@ -57,7 +59,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 where: { id: usuario.id },
                 data: {
                   rol: role,
-                  escuela: role === 'ESCUELA' ? cuentaAutorizada.escuela ?? null : null,
+                  ...(role === 'ESCUELA' && cuentaAutorizada.escuela
+                    ? { escuela: cuentaAutorizada.escuela }
+                    : {}),
                 },
               }),
               prisma.cuentaAutorizada.update({
