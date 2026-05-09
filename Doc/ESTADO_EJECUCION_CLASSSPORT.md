@@ -27,7 +27,7 @@
 | # | Nombre | Rol asignado | Estado | Fecha inicio | Fecha cierre | Archivo de resumen |
 |---|--------|-------------|--------|-------------|-------------|-------------------|
 | 1 | Bootstrap, Login y `dataService` base | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_1_BOOTSTRAP.md](RESUMEN_FASE_1_BOOTSTRAP.md) |
-| 2 | Dashboard, Layout base y página de bootstrap | Diseñador Frontend Obsesivo + Ingeniero de Sistemas | Pendiente | — | — | — |
+| 2 | Dashboard, Layout base y página de bootstrap | Diseñador Frontend Obsesivo + Ingeniero de Sistemas | En progreso | 2026-05-09 | — | — |
 | 3 | Bloques, Salones y Disponibilidad | Ingeniero Fullstack Senior | Pendiente | — | — | — |
 | 4 | Reservas | Ingeniero Fullstack Senior | Pendiente | — | — | — |
 | 5 | Reportes y Administración de Usuarios | Ingeniero Fullstack Senior | Pendiente | — | — | — |
