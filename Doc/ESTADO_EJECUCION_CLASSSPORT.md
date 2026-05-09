@@ -27,7 +27,7 @@
 | # | Nombre | Rol asignado | Estado | Fecha inicio | Fecha cierre | Archivo de resumen |
 |---|--------|-------------|--------|-------------|-------------|-------------------|
 | 1 | Bootstrap, Login y `dataService` base | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_1_BOOTSTRAP.md](RESUMEN_FASE_1_BOOTSTRAP.md) |
-| 2 | Dashboard, Layout base y página de bootstrap | Diseñador Frontend Obsesivo + Ingeniero de Sistemas | En progreso | 2026-05-09 | — | — |
+| 2 | Dashboard, Layout base y página de bootstrap | Diseñador Frontend Obsesivo + Ingeniero de Sistemas | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_2_DASHBOARD.md](RESUMEN_FASE_2_DASHBOARD.md) |
 | 3 | Bloques, Salones y Disponibilidad | Ingeniero Fullstack Senior | Pendiente | — | — | — |
 | 4 | Reservas | Ingeniero Fullstack Senior | Pendiente | — | — | — |
 | 5 | Reportes y Administración de Usuarios | Ingeniero Fullstack Senior | Pendiente | — | — | — |
@@ -54,6 +54,8 @@
 | 2026-05-09 | 00:00 | Proyecto | Creación del estado de ejecución | Archivo ESTADO_EJECUCION_CLASSSPORT.md generado basado en PLAN_CLASSSPORT.md. Todas las fases en estado Pendiente. Sistema listo para iniciar Fase 1. |
 | 2026-05-09 | 01:45 | Fase 1 | Inicio de Fase 1 | Iniciando implementación de Bootstrap, Login y dataService base. Creación de estructura Next.js. |
 | 2026-05-09 | 02:30 | Fase 1 | Completación de Fase 1 | ✅ EXITOSO: 40+ archivos creados, todas las tareas 1.1-1.13 completadas. npm typecheck → 0 errores. Seed.json con admin (bcrypt hash) + 3 bloques + 6 franjas + 4 salones. dataService funcional en modo seed. Login page con identidad visual ClassSport. JWT + HttpOnly cookie implementado. API routes de auth funcionales. Doc/RESUMEN_FASE_1_BOOTSTRAP.md creado. Listo para Fase 2. |
+| 2026-05-09 | 03:00 | Fase 2 | Inicio de Fase 2 | Iniciando implementación de Dashboard, Layout base y página de bootstrap. Rol: Diseñador Frontend Obsesivo + Ingeniero de Sistemas. |
+| 2026-05-09 | 03:45 | Fase 2 | Completación de Fase 2 | ✅ EXITOSO: 25 archivos nuevos + 2 actualizados. Completadas tareas 2.1-2.9. UI base completa (Button, Card, Badge, Modal, Toast, EmptyState, Table). AppLayout con sidebar/bottom nav diferenciado por rol (profesor, coordinador, admin). SeedModeBanner. GET /api/dashboard con respuestas por rol. /admin/db-setup con diagnósticos y bootstrap. middleware.ts protegiendo rutas. 7 páginas completas (dashboard, blocks, reservations/my, reservations, reports, profile, admin/db-setup). npm typecheck → 0 errores. Responsive en 375px-1280px. Git commit + push exitoso. Doc/RESUMEN_FASE_2_DASHBOARD.md creado. Listo para Fase 3. |
 
 ---
 
