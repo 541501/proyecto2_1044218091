@@ -1,0 +1,93 @@
+{
+  "users": [
+    {
+      "email": "admin@classsport.edu.co",
+      "password_hash": "$2b$10$IZSkofFZvfDjGAOafWmg3e.hIEfmf5quk5SW/hnYa6i37xqPrXjTm",
+      "role": "admin",
+      "name": "Administrador",
+      "is_active": true
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Bloque A",
+      "code": "A"
+    },
+    {
+      "name": "Bloque B",
+      "code": "B"
+    },
+    {
+      "name": "Bloque C",
+      "code": "C"
+    }
+  ],
+  "slots": [
+    {
+      "name": "07:00–09:00",
+      "start_time": "07:00",
+      "end_time": "09:00",
+      "order": 1
+    },
+    {
+      "name": "09:00–11:00",
+      "start_time": "09:00",
+      "end_time": "11:00",
+      "order": 2
+    },
+    {
+      "name": "11:00–13:00",
+      "start_time": "11:00",
+      "end_time": "13:00",
+      "order": 3
+    },
+    {
+      "name": "14:00–16:00",
+      "start_time": "14:00",
+      "end_time": "16:00",
+      "order": 4
+    },
+    {
+      "name": "16:00–18:00",
+      "start_time": "16:00",
+      "end_time": "18:00",
+      "order": 5
+    },
+    {
+      "name": "18:00–20:00",
+      "start_time": "18:00",
+      "end_time": "20:00",
+      "order": 6
+    }
+  ],
+  "rooms": [
+    {
+      "code": "A-101",
+      "block_code": "A",
+      "type": "salon",
+      "capacity": 40,
+      "equipment": "Videobeam, tablero"
+    },
+    {
+      "code": "A-102",
+      "block_code": "A",
+      "type": "salon",
+      "capacity": 35,
+      "equipment": "Tablero"
+    },
+    {
+      "code": "B-201",
+      "block_code": "B",
+      "type": "laboratorio",
+      "capacity": 25,
+      "equipment": "Computadores, videobeam"
+    },
+    {
+      "code": "C-301",
+      "block_code": "C",
+      "type": "auditorio",
+      "capacity": 120,
+      "equipment": "Videobeam, sonido, aire"
+    }
+  ]
+}

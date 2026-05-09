@@ -26,7 +26,7 @@
 
 | # | Nombre | Rol asignado | Estado | Fecha inicio | Fecha cierre | Archivo de resumen |
 |---|--------|-------------|--------|-------------|-------------|-------------------|
-| 1 | Bootstrap, Login y `dataService` base | Ingeniero Fullstack Senior | Pendiente | — | — | — |
+| 1 | Bootstrap, Login y `dataService` base | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_1_BOOTSTRAP.md](RESUMEN_FASE_1_BOOTSTRAP.md) |
 | 2 | Dashboard, Layout base y página de bootstrap | Diseñador Frontend Obsesivo + Ingeniero de Sistemas | Pendiente | — | — | — |
 | 3 | Bloques, Salones y Disponibilidad | Ingeniero Fullstack Senior | Pendiente | — | — | — |
 | 4 | Reservas | Ingeniero Fullstack Senior | Pendiente | — | — | — |
@@ -52,6 +52,8 @@
 | Fecha | Hora | Fase | Evento | Detalle |
 |-------|------|------|--------|--------|
 | 2026-05-09 | 00:00 | Proyecto | Creación del estado de ejecución | Archivo ESTADO_EJECUCION_CLASSSPORT.md generado basado en PLAN_CLASSSPORT.md. Todas las fases en estado Pendiente. Sistema listo para iniciar Fase 1. |
+| 2026-05-09 | 01:45 | Fase 1 | Inicio de Fase 1 | Iniciando implementación de Bootstrap, Login y dataService base. Creación de estructura Next.js. |
+| 2026-05-09 | 02:30 | Fase 1 | Completación de Fase 1 | ✅ EXITOSO: 40+ archivos creados, todas las tareas 1.1-1.13 completadas. npm typecheck → 0 errores. Seed.json con admin (bcrypt hash) + 3 bloques + 6 franjas + 4 salones. dataService funcional en modo seed. Login page con identidad visual ClassSport. JWT + HttpOnly cookie implementado. API routes de auth funcionales. Doc/RESUMEN_FASE_1_BOOTSTRAP.md creado. Listo para Fase 2. |
 
 ---
 
@@ -99,4 +101,4 @@ La Fase 1 se considerará completada cuando:
 ---
 
 **Documento generado por**: Ingeniero de Proyectos
-**Próximo paso**: Iniciar Fase 1 — Bootstrap, Login y `dataService` base
+**Próximo paso**: Iniciar Fase 2 — Dashboard, Layout base y página de bootstrap
