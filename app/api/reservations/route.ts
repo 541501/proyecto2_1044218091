@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRole } from '@/lib/withRole';
+import { withAuth } from '@/lib/withAuth';
 import {
   getReservations,
   createReservation,
@@ -12,24 +12,40 @@ import type { ReservationFilters } from '@/lib/types';
  * Retrieve all reservations (coordinators and admins only)
  * Query params: status, from_date, to_date, block_id
  */
-async function handleGet(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-
-  const filters: ReservationFilters = {};
-  if (searchParams.has('status')) {
-    filters.status = searchParams.get('status') as 'confirmada' | 'cancelada';
-  }
-  if (searchParams.has('from_date')) {
-    filters.from_date = searchParams.get('from_date') || undefined;
-  }
-  if (searchParams.has('to_date')) {
-    filters.to_date = searchParams.get('to_date') || undefined;
-  }
-  if (searchParams.has('block_id')) {
-    filters.block_id = searchParams.get('block_id') || undefined;
-  }
-
+export async function GET(request: NextRequest) {
   try {
+    const { user } = await withAuth(request);
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    if (user.role !== 'coordinador' && user.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+
+    const filters: ReservationFilters = {};
+    if (searchParams.has('status')) {
+      filters.status = searchParams.get('status') as 'confirmada' | 'cancelada';
+    }
+    if (searchParams.has('from_date')) {
+      filters.from_date = searchParams.get('from_date') || undefined;
+    }
+    if (searchParams.has('to_date')) {
+      filters.to_date = searchParams.get('to_date') || undefined;
+    }
+    if (searchParams.has('block_id')) {
+      filters.block_id = searchParams.get('block_id') || undefined;
+    }
+
     const reservations = await getReservations(filters);
     return NextResponse.json(reservations);
   } catch (error) {
@@ -46,10 +62,24 @@ async function handleGet(request: NextRequest) {
  * Create a new reservation
  * Body: { room_id, slot_id, reservation_date, subject, group_name }
  */
-async function handlePost(request: NextRequest) {
-  const { user } = (request as any).auth;
-
+export async function POST(request: NextRequest) {
   try {
+    const { user } = await withAuth(request);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    if (user.role !== 'profesor' && user.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     // Validate request body
@@ -103,6 +133,3 @@ async function handlePost(request: NextRequest) {
     );
   }
 }
-
-export const POST = withRole(['profesor', 'admin'])(handlePost as any);
-export const GET = withRole(['coordinador', 'admin'])(handleGet as any);

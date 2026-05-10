@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/reservations/layout,_N_T_/reservations/my/layout,_N_T_/reservations/my/page,_N_T_/reservations/my"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/reservations/my/__PAGE__",
+    "/reservations/my",
+    "/reservations",
+    "/_index",
+    "/_head"
+  ]
+}

@@ -1,0 +1,298 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        }
+      ],
+      "regex": "^/api(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+    }
+  ],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/blocks/[id]",
+      "regex": "^/api/blocks/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/blocks/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/blocks/[id]/availability",
+      "regex": "^/api/blocks/([^/]+?)/availability(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/blocks/(?<nxtPid>[^/]+?)/availability(?:/)?$"
+    },
+    {
+      "page": "/api/reservations/[id]",
+      "regex": "^/api/reservations/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/reservations/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/reservations/[id]/cancel",
+      "regex": "^/api/reservations/([^/]+?)/cancel(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/reservations/(?<nxtPid>[^/]+?)/cancel(?:/)?$"
+    },
+    {
+      "page": "/api/rooms/[id]",
+      "regex": "^/api/rooms/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/rooms/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/rooms/[id]/calendar",
+      "regex": "^/api/rooms/([^/]+?)/calendar(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/rooms/(?<nxtPid>[^/]+?)/calendar(?:/)?$"
+    },
+    {
+      "page": "/api/users/[id]",
+      "regex": "^/api/users/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/users/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/blocks/[blockId]",
+      "regex": "^/blocks/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPblockId": "nxtPblockId"
+      },
+      "namedRegex": "^/blocks/(?<nxtPblockId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/blocks/[blockId]/[roomId]",
+      "regex": "^/blocks/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPblockId": "nxtPblockId",
+        "nxtProomId": "nxtProomId"
+      },
+      "namedRegex": "^/blocks/(?<nxtPblockId>[^/]+?)/(?<nxtProomId>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin/audit",
+      "regex": "^/admin/audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/audit(?:/)?$"
+    },
+    {
+      "page": "/admin/db-setup",
+      "regex": "^/admin/db\\-setup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/db\\-setup(?:/)?$"
+    },
+    {
+      "page": "/admin/users",
+      "regex": "^/admin/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/users(?:/)?$"
+    },
+    {
+      "page": "/api/auth/change-password",
+      "regex": "^/api/auth/change\\-password(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/change\\-password(?:/)?$"
+    },
+    {
+      "page": "/api/auth/login",
+      "regex": "^/api/auth/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/login(?:/)?$"
+    },
+    {
+      "page": "/api/auth/logout",
+      "regex": "^/api/auth/logout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/logout(?:/)?$"
+    },
+    {
+      "page": "/api/auth/me",
+      "regex": "^/api/auth/me(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/me(?:/)?$"
+    },
+    {
+      "page": "/api/blocks",
+      "regex": "^/api/blocks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/blocks(?:/)?$"
+    },
+    {
+      "page": "/api/dashboard",
+      "regex": "^/api/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dashboard(?:/)?$"
+    },
+    {
+      "page": "/api/reports/occupancy",
+      "regex": "^/api/reports/occupancy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reports/occupancy(?:/)?$"
+    },
+    {
+      "page": "/api/reservations",
+      "regex": "^/api/reservations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reservations(?:/)?$"
+    },
+    {
+      "page": "/api/reservations/my",
+      "regex": "^/api/reservations/my(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reservations/my(?:/)?$"
+    },
+    {
+      "page": "/api/rooms",
+      "regex": "^/api/rooms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/rooms(?:/)?$"
+    },
+    {
+      "page": "/api/system/bootstrap",
+      "regex": "^/api/system/bootstrap(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/system/bootstrap(?:/)?$"
+    },
+    {
+      "page": "/api/system/diagnose",
+      "regex": "^/api/system/diagnose(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/system/diagnose(?:/)?$"
+    },
+    {
+      "page": "/api/system/mode",
+      "regex": "^/api/system/mode(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/system/mode(?:/)?$"
+    },
+    {
+      "page": "/api/users",
+      "regex": "^/api/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users(?:/)?$"
+    },
+    {
+      "page": "/blocks",
+      "regex": "^/blocks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/blocks(?:/)?$"
+    },
+    {
+      "page": "/dashboard",
+      "regex": "^/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/profile",
+      "regex": "^/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile(?:/)?$"
+    },
+    {
+      "page": "/reports",
+      "regex": "^/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reports(?:/)?$"
+    },
+    {
+      "page": "/reservations",
+      "regex": "^/reservations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reservations(?:/)?$"
+    },
+    {
+      "page": "/reservations/my",
+      "regex": "^/reservations/my(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reservations/my(?:/)?$"
+    },
+    {
+      "page": "/reservations/new",
+      "regex": "^/reservations/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reservations/new(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

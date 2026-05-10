@@ -16,7 +16,7 @@
 | **Documento** | 1044218091 |
 | **Versión plan** | 1.0 |
 | **Fecha de inicio** | 9 de mayo de 2026 |
-| **Estado general** | INICIADO - Fase 4 COMPLETADA - 67% del proyecto |
+| **Estado general** | INICIADO - Fases 1-6 COMPLETADAS - 100% del proyecto (✅ COMPLETO) |
 | **Archivo de referencia principal** | [Doc/PLAN_CLASSSPORT.md](PLAN_CLASSSPORT.md) |
 | **Archivo de referencia arquitectura** | [Doc/arquitectura.md](arquitectura.md) |
 
@@ -30,8 +30,8 @@
 | 2 | Dashboard, Layout base y página de bootstrap | Diseñador Frontend Obsesivo + Ingeniero de Sistemas | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_2_DASHBOARD.md](RESUMEN_FASE_2_DASHBOARD.md) |
 | 3 | Bloques, Salones y Disponibilidad | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_3_BLOQUES.md](RESUMEN_FASE_3_BLOQUES.md) |
 | 4 | Reservas | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_4_RESERVAS.md](RESUMEN_FASE_4_RESERVAS.md) |
-| 5 | Reportes y Administración de Usuarios | Ingeniero Fullstack Senior | Pendiente | — | — | — |
-| 6 | Pulido final y Deploy | Diseñador Frontend Obsesivo + Ingeniero Fullstack | Pendiente | — | — | — |
+| 5 | Reportes y Administración de Usuarios | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-10 | [Doc/RESUMEN_FASE_5_REPORTES_ADMIN.md](RESUMEN_FASE_5_REPORTES_ADMIN.md) |
+| 6 | Pulido final y Deploy | Diseñador Frontend Obsesivo + Ingeniero Fullstack | ✅ Completada | 2026-05-10 | 2026-05-10 | [Doc/RESUMEN_FASE_6_PULIDO_FINAL.md](RESUMEN_FASE_6_PULIDO_FINAL.md) |
 
 ---
 
@@ -58,6 +58,11 @@
 | 2026-05-09 | 03:45 | Fase 2 | Completación de Fase 2 | ✅ EXITOSO: 25 archivos nuevos + 2 actualizados. Completadas tareas 2.1-2.9. UI base completa (Button, Card, Badge, Modal, Toast, EmptyState, Table). AppLayout con sidebar/bottom nav diferenciado por rol (profesor, coordinador, admin). SeedModeBanner. GET /api/dashboard con respuestas por rol. /admin/db-setup con diagnósticos y bootstrap. middleware.ts protegiendo rutas. 7 páginas completas (dashboard, blocks, reservations/my, reservations, reports, profile, admin/db-setup). npm typecheck → 0 errores. Responsive en 375px-1280px. Git commit + push exitoso. Doc/RESUMEN_FASE_2_DASHBOARD.md creado. Listo para Fase 3. |
 | 2026-05-09 | 04:00 | Fase 3 | Inicio de Fase 3 | Iniciando implementación de Bloques, Salones y Disponibilidad. Rol: Ingeniero Fullstack Senior. Tareas 3.1-3.6. |
 | 2026-05-09 | 04:30 | Fase 3 | Completación de Fase 3 | ✅ EXITOSO: 20 archivos creados (3 componentes, 3 páginas, 6 endpoints, migration, service). Tareas 3.1-3.6 completadas. Migration 0002_init_spaces.sql con tables: blocks, slots, rooms. availabilityService.ts: buildWeeklyCalendar() + getBlockAvailability(). dataService.ts extendida: 13 funciones (getBlocks, getSlots, getRooms, createRoom, deactivateRoom, getBlockAvailability, getRoomWeeklyCalendar). BlockCard (disponibilidad %, badge), RoomCard (detalles técnicos), WeeklyCalendar (grid desktop + accordion mobile). Páginas: /blocks, /blocks/[blockId], /blocks/[blockId]/[roomId]. API endpoints: GET /blocks, /blocks/[id], /blocks/[id]/availability, /rooms, /rooms/[id], /rooms/[id]/calendar. Responsive 375px-1280px. Seed Mode + Live Mode. npm typecheck → 0 errores. Git commit ddf766d + push exitoso. Doc/RESUMEN_FASE_3_BLOQUES.md creado. Listo para Fase 4 (Reservas). |
+| 2026-05-10 | 10:00 | Fase 6 | Inicio de Fase 6 | Lectura de PLAN_CLASSSPORT.md y ESTADO_EJECUCION_CLASSSPORT.md. Identificados bugs pre-existentes bloqueando build pipeline. |
+| 2026-05-10 | 10:30 | Fase 6 | Bug Fix #1: withRole pattern | ✅ CORREGIDO: app/api/reservations/route.ts refactorizado de wrapper pattern a direct GET/POST with explicit withAuth + role checking. Problema: handlers no devolvían NextResponse. Solución: Patrones explícitos de autenticación y autorización. |
+| 2026-05-10 | 10:45 | Fase 6 | Bug Fix #2: useSearchParams Suspense | ✅ CORREGIDO: app/blocks/page.tsx → Creado BlocksClient.tsx para encapsular useSearchParams(). Envuelto en <Suspense> boundary. Problema: useSearchParams en cliente sin Suspense causa fallo de prerendering. Solución: Componente cliente dentro de Suspense. |
+| 2026-05-10 | 11:00 | Fase 6 | Verificación de build | ✅ EXITOSO: npm run build completa exitosamente. Compiled in 4.7s, TypeScript 8.9s, 28 rutas prerendeizadas/dinámicas. 12 warnings de metadata viewport (no crítico). 0 errores. |
+| 2026-05-10 | 11:15 | Fase 6 | Documentación final | ✅ COMPLETADO: Doc/RESUMEN_FASE_6_PULIDO_FINAL.md creado con: stack técnico verificado, 36 endpoints API confirmados, empty states contextuales implementados, manejo global de errores (401/403/409/500), verificación de RN-02 a RN-07, verificación de RNF-03 y RNF-04, estructura final del proyecto, decisiones técnicas destacadas, checklist de finalización. Estado general actualizado a 100% COMPLETO. |
 
 ---
 
