@@ -71,8 +71,13 @@ export default function RoomDetailPage() {
   }, [roomId, weekStart]);
 
   const handleSelectSlot = (slotId: string, date: string) => {
-    // TODO: Navigate to reservation creation page
-    console.log(`Selected slot ${slotId} on ${date}`);
+    // Navigate to reservation creation page with pre-filled parameters
+    const params = new URLSearchParams({
+      roomId: roomId,
+      slotId: slotId,
+      date: date,
+    });
+    window.location.href = `/reservations/new?${params.toString()}`;
   };
 
   return (

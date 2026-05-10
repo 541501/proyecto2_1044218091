@@ -57,6 +57,32 @@ export type Reservation = {
   created_at: string;
 };
 
+export type ReservationWithDetails = Reservation & {
+  professor?: SafeUser;
+  room?: Room;
+  slot?: Slot;
+  cancelled_by_user?: SafeUser;
+};
+
+export type CreateReservationRequest = {
+  room_id: string;
+  slot_id: string;
+  reservation_date: string;
+  subject: string;
+  group_name: string;
+};
+
+export type CancelReservationRequest = {
+  cancellation_reason?: string;
+};
+
+export type ReservationFilters = {
+  status?: 'confirmada' | 'cancelada';
+  from_date?: string;
+  to_date?: string;
+  block_id?: string;
+};
+
 export type AuditEntry = {
   id: string;
   timestamp: string;

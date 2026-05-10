@@ -1,9 +1,28 @@
 import bcryptjs from 'bcryptjs';
-import type { User, SafeUser, SystemMode, AuditEntry, Block, Slot, Room } from './types';
+import type {
+  User,
+  SafeUser,
+  SystemMode,
+  AuditEntry,
+  Block,
+  Slot,
+  Room,
+  Reservation,
+  ReservationWithDetails,
+  CreateReservationRequest,
+  CancelReservationRequest,
+  ReservationFilters,
+} from './types';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { appendAudit, isBlobConfigured } from './blobAudit';
 import { readSeed } from './seedReader';
 import { buildWeeklyCalendar } from './availabilityService';
+import {
+  validateReservationRules,
+  checkConflict,
+  type ReservationConflict,
+} from './reservationService';
+import { isTodayOrPastDate } from './dateUtils';
 
 let systemMode: SystemMode | null = null;
 
@@ -398,3 +417,319 @@ function getWeekStart(date: string): string {
   d.setDate(diff);
   return d.toISOString().split('T')[0];
 }
+
+// ==================== RESERVATIONS ====================
+
+/**
+ * Get all reservations with details (used by coordinators and admins)
+ * Optionally filter by status, date range, and block
+ */
+export async function getReservations(
+  filters?: ReservationFilters
+): Promise<ReservationWithDetails[]> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    // In seed mode, no reservations exist
+    return [];
+  }
+
+  let query = supabase!.from('reservations').select(
+    `
+    *,
+    professor:professor_id (id, name, email, role, is_active, created_at),
+    room:room_id (id, block_id, code, type, capacity, equipment, is_active, created_at, updated_at),
+    slot:slot_id (id, name, start_time, end_time, order_index, is_active),
+    cancelled_by_user:cancelled_by (id, name, email, role, is_active, created_at)
+  `
+  );
+
+  if (filters?.status) {
+    query = query.eq('status', filters.status);
+  }
+  if (filters?.from_date) {
+    query = query.gte('reservation_date', filters.from_date);
+  }
+  if (filters?.to_date) {
+    query = query.lte('reservation_date', filters.to_date);
+  }
+
+  // If block_id is provided, join with rooms to filter by block
+  if (filters?.block_id) {
+    query = query.eq('room.block_id', filters.block_id);
+  }
+
+  const { data, error } = await query.order('reservation_date', {
+    ascending: false,
+  });
+
+  if (error) {
+    console.error('Error fetching reservations:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Get only the user's own reservations (used by professors)
+ */
+export async function getMyReservations(
+  userId: string,
+  filters?: ReservationFilters
+): Promise<ReservationWithDetails[]> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    // In seed mode, no reservations exist
+    return [];
+  }
+
+  let query = supabase!.from('reservations').select(
+    `
+    *,
+    professor:professor_id (id, name, email, role, is_active, created_at),
+    room:room_id (id, block_id, code, type, capacity, equipment, is_active, created_at, updated_at),
+    slot:slot_id (id, name, start_time, end_time, order_index, is_active),
+    cancelled_by_user:cancelled_by (id, name, email, role, is_active, created_at)
+  `
+  );
+
+  query = query.eq('professor_id', userId);
+
+  if (filters?.status) {
+    query = query.eq('status', filters.status);
+  }
+  if (filters?.from_date) {
+    query = query.gte('reservation_date', filters.from_date);
+  }
+  if (filters?.to_date) {
+    query = query.lte('reservation_date', filters.to_date);
+  }
+
+  const { data, error } = await query.order('reservation_date', {
+    ascending: false,
+  });
+
+  if (error) {
+    console.error('Error fetching my reservations:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/**
+ * Create a new reservation with full validation and conflict detection.
+ * 
+ * Flow:
+ * 1. Validate business rules (RN-02, RN-03)
+ * 2. Check for conflicts (RN-01)
+ * 3. Insert into database (Postgres UNIQUE index as second line of defense)
+ * 4. Record audit entry (RN-08)
+ * 
+ * Returns: Reservation object or throws error with appropriate HTTP status code
+ */
+export async function createReservation(
+  userId: string,
+  userEmail: string,
+  userRole: string,
+  data: CreateReservationRequest
+): Promise<{ reservation: Reservation; conflict?: ReservationConflict }> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    throw new Error('Cannot create reservations in seed mode');
+  }
+
+  // Step 1: Validate business rules (RN-02, RN-03)
+  const validationErrors = validateReservationRules(data.reservation_date);
+  if (validationErrors.length > 0) {
+    const error = new Error(validationErrors[0]);
+    (error as any).statusCode = 400;
+    (error as any).validationErrors = validationErrors;
+    throw error;
+  }
+
+  // Step 2: Check for conflicts (RN-01)
+  const conflict = await checkConflict(
+    data.room_id,
+    data.slot_id,
+    data.reservation_date
+  );
+  if (conflict) {
+    const error = new Error('Slot already reserved');
+    (error as any).statusCode = 409;
+    (error as any).conflict = conflict;
+    throw error;
+  }
+
+  // Step 3: Insert into database
+  let insertedReservation: Reservation;
+  try {
+    const { data: result, error } = await supabase!
+      .from('reservations')
+      .insert([
+        {
+          room_id: data.room_id,
+          slot_id: data.slot_id,
+          professor_id: userId,
+          reservation_date: data.reservation_date,
+          subject: data.subject,
+          group_name: data.group_name,
+          status: 'confirmada',
+          created_by: userId,
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      // Check if it's a UNIQUE constraint violation (race condition)
+      if (error.code === '23505') {
+        // Retry the conflict check to get the conflicting reservation details
+        const conflictRetry = await checkConflict(
+          data.room_id,
+          data.slot_id,
+          data.reservation_date
+        );
+        const retryError = new Error('Slot already reserved');
+        (retryError as any).statusCode = 409;
+        (retryError as any).conflict = conflictRetry;
+        throw retryError;
+      }
+      throw error;
+    }
+
+    insertedReservation = result;
+  } catch (err) {
+    if ((err as any).statusCode) {
+      throw err;
+    }
+    console.error('Error creating reservation:', err);
+    throw err;
+  }
+
+  // Step 4: Record audit entry (RN-08)
+  const room = await getRoomById(data.room_id);
+  const slot = await (async () => {
+    const slots = await getSlots();
+    return slots.find((s) => s.id === data.slot_id);
+  })();
+
+  await recordAudit({
+    timestamp: new Date().toISOString(),
+    user_id: userId,
+    user_email: userEmail,
+    user_role: userRole as 'profesor' | 'coordinador' | 'admin',
+    action: 'create_reservation',
+    entity: 'reservation',
+    entity_id: insertedReservation.id,
+    summary: `Reserva creada: ${room?.code || 'N/A'} - ${slot?.name || 'N/A'} - ${data.subject}`,
+    metadata: {
+      room_id: data.room_id,
+      slot_id: data.slot_id,
+      reservation_date: data.reservation_date,
+    },
+  });
+
+  return { reservation: insertedReservation };
+}
+
+/**
+ * Cancel a reservation with role-based validation.
+ * 
+ * Rules:
+ * - Professors: can only cancel their own reservations, only if date > TODAY (RN-04, RN-05)
+ * - Coordinators/Admins: can cancel any reservation if they provide a reason
+ * 
+ * Returns: Updated reservation object or throws error
+ */
+export async function cancelReservation(
+  reservationId: string,
+  userId: string,
+  userEmail: string,
+  userRole: 'profesor' | 'coordinador' | 'admin',
+  data?: CancelReservationRequest
+): Promise<Reservation> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    throw new Error('Cannot cancel reservations in seed mode');
+  }
+
+  // Fetch the reservation to validate permissions
+  const { data: reservation, error: fetchError } = await supabase!
+    .from('reservations')
+    .select('*')
+    .eq('id', reservationId)
+    .single();
+
+  if (fetchError || !reservation) {
+    const error = new Error('Reservation not found');
+    (error as any).statusCode = 404;
+    throw error;
+  }
+
+  // If professor, apply additional restrictions
+  if (userRole === 'profesor') {
+    // RN-05: Can only cancel own reservations
+    if (reservation.professor_id !== userId) {
+      const error = new Error('Cannot cancel reservations of other professors');
+      (error as any).statusCode = 403;
+      throw error;
+    }
+
+    // RN-04: Can only cancel future reservations
+    if (isTodayOrPastDate(reservation.reservation_date)) {
+      const error = new Error(
+        'Cannot cancel reservations for today or past dates. Only future reservations can be cancelled.'
+      );
+      (error as any).statusCode = 409;
+      throw error;
+    }
+  }
+
+  // For coordinators and admins, reason is optional but good practice
+  const cancellationReason = data?.cancellation_reason || '';
+
+  // Update the reservation
+  const { data: updatedReservation, error: updateError } = await supabase!
+    .from('reservations')
+    .update({
+      status: 'cancelada',
+      cancellation_reason: cancellationReason,
+      cancelled_by: userId,
+      cancelled_at: new Date().toISOString(),
+    })
+    .eq('id', reservationId)
+    .select()
+    .single();
+
+  if (updateError || !updatedReservation) {
+    console.error('Error cancelling reservation:', updateError);
+    const error = new Error('Failed to cancel reservation');
+    (error as any).statusCode = 500;
+    throw error;
+  }
+
+  // Record audit entry (RN-08)
+  await recordAudit({
+    timestamp: new Date().toISOString(),
+    user_id: userId,
+    user_email: userEmail,
+    user_role: userRole,
+    action: 'cancel_reservation',
+    entity: 'reservation',
+    entity_id: reservationId,
+    summary: `Reserva cancelada por ${userRole === 'profesor' ? 'profesor' : 'administrador'}. Motivo: ${cancellationReason || 'Sin especificar'}`,
+    metadata: {
+      reservation_id: reservationId,
+      cancellation_reason: cancellationReason,
+    },
+  });
+
+  return updatedReservation;
+}
+

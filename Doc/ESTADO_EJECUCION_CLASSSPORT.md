@@ -16,7 +16,7 @@
 | **Documento** | 1044218091 |
 | **Versión plan** | 1.0 |
 | **Fecha de inicio** | 9 de mayo de 2026 |
-| **Estado general** | INICIADO - Fase 3 COMPLETADA - 50% del proyecto |
+| **Estado general** | INICIADO - Fase 4 COMPLETADA - 67% del proyecto |
 | **Archivo de referencia principal** | [Doc/PLAN_CLASSSPORT.md](PLAN_CLASSSPORT.md) |
 | **Archivo de referencia arquitectura** | [Doc/arquitectura.md](arquitectura.md) |
 
@@ -29,7 +29,7 @@
 | 1 | Bootstrap, Login y `dataService` base | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_1_BOOTSTRAP.md](RESUMEN_FASE_1_BOOTSTRAP.md) |
 | 2 | Dashboard, Layout base y página de bootstrap | Diseñador Frontend Obsesivo + Ingeniero de Sistemas | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_2_DASHBOARD.md](RESUMEN_FASE_2_DASHBOARD.md) |
 | 3 | Bloques, Salones y Disponibilidad | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_3_BLOQUES.md](RESUMEN_FASE_3_BLOQUES.md) |
-| 4 | Reservas | Ingeniero Fullstack Senior | Pendiente | — | — | — |
+| 4 | Reservas | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_4_RESERVAS.md](RESUMEN_FASE_4_RESERVAS.md) |
 | 5 | Reportes y Administración de Usuarios | Ingeniero Fullstack Senior | Pendiente | — | — | — |
 | 6 | Pulido final y Deploy | Diseñador Frontend Obsesivo + Ingeniero Fullstack | Pendiente | — | — | — |
 
