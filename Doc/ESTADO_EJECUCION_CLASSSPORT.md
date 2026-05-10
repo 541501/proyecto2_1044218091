@@ -16,7 +16,7 @@
 | **Documento** | 1044218091 |
 | **Versión plan** | 1.0 |
 | **Fecha de inicio** | 9 de mayo de 2026 |
-| **Estado general** | INICIADO - Pendiente Fase 1 |
+| **Estado general** | INICIADO - Fase 3 COMPLETADA - 50% del proyecto |
 | **Archivo de referencia principal** | [Doc/PLAN_CLASSSPORT.md](PLAN_CLASSSPORT.md) |
 | **Archivo de referencia arquitectura** | [Doc/arquitectura.md](arquitectura.md) |
 
@@ -28,7 +28,7 @@
 |---|--------|-------------|--------|-------------|-------------|-------------------|
 | 1 | Bootstrap, Login y `dataService` base | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_1_BOOTSTRAP.md](RESUMEN_FASE_1_BOOTSTRAP.md) |
 | 2 | Dashboard, Layout base y página de bootstrap | Diseñador Frontend Obsesivo + Ingeniero de Sistemas | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_2_DASHBOARD.md](RESUMEN_FASE_2_DASHBOARD.md) |
-| 3 | Bloques, Salones y Disponibilidad | Ingeniero Fullstack Senior | En progreso | 2026-05-09 | — | — |
+| 3 | Bloques, Salones y Disponibilidad | Ingeniero Fullstack Senior | Completada | 2026-05-09 | 2026-05-09 | [Doc/RESUMEN_FASE_3_BLOQUES.md](RESUMEN_FASE_3_BLOQUES.md) |
 | 4 | Reservas | Ingeniero Fullstack Senior | Pendiente | — | — | — |
 | 5 | Reportes y Administración de Usuarios | Ingeniero Fullstack Senior | Pendiente | — | — | — |
 | 6 | Pulido final y Deploy | Diseñador Frontend Obsesivo + Ingeniero Fullstack | Pendiente | — | — | — |
@@ -56,6 +56,8 @@
 | 2026-05-09 | 02:30 | Fase 1 | Completación de Fase 1 | ✅ EXITOSO: 40+ archivos creados, todas las tareas 1.1-1.13 completadas. npm typecheck → 0 errores. Seed.json con admin (bcrypt hash) + 3 bloques + 6 franjas + 4 salones. dataService funcional en modo seed. Login page con identidad visual ClassSport. JWT + HttpOnly cookie implementado. API routes de auth funcionales. Doc/RESUMEN_FASE_1_BOOTSTRAP.md creado. Listo para Fase 2. |
 | 2026-05-09 | 03:00 | Fase 2 | Inicio de Fase 2 | Iniciando implementación de Dashboard, Layout base y página de bootstrap. Rol: Diseñador Frontend Obsesivo + Ingeniero de Sistemas. |
 | 2026-05-09 | 03:45 | Fase 2 | Completación de Fase 2 | ✅ EXITOSO: 25 archivos nuevos + 2 actualizados. Completadas tareas 2.1-2.9. UI base completa (Button, Card, Badge, Modal, Toast, EmptyState, Table). AppLayout con sidebar/bottom nav diferenciado por rol (profesor, coordinador, admin). SeedModeBanner. GET /api/dashboard con respuestas por rol. /admin/db-setup con diagnósticos y bootstrap. middleware.ts protegiendo rutas. 7 páginas completas (dashboard, blocks, reservations/my, reservations, reports, profile, admin/db-setup). npm typecheck → 0 errores. Responsive en 375px-1280px. Git commit + push exitoso. Doc/RESUMEN_FASE_2_DASHBOARD.md creado. Listo para Fase 3. |
+| 2026-05-09 | 04:00 | Fase 3 | Inicio de Fase 3 | Iniciando implementación de Bloques, Salones y Disponibilidad. Rol: Ingeniero Fullstack Senior. Tareas 3.1-3.6. |
+| 2026-05-09 | 04:30 | Fase 3 | Completación de Fase 3 | ✅ EXITOSO: 20 archivos creados (3 componentes, 3 páginas, 6 endpoints, migration, service). Tareas 3.1-3.6 completadas. Migration 0002_init_spaces.sql con tables: blocks, slots, rooms. availabilityService.ts: buildWeeklyCalendar() + getBlockAvailability(). dataService.ts extendida: 13 funciones (getBlocks, getSlots, getRooms, createRoom, deactivateRoom, getBlockAvailability, getRoomWeeklyCalendar). BlockCard (disponibilidad %, badge), RoomCard (detalles técnicos), WeeklyCalendar (grid desktop + accordion mobile). Páginas: /blocks, /blocks/[blockId], /blocks/[blockId]/[roomId]. API endpoints: GET /blocks, /blocks/[id], /blocks/[id]/availability, /rooms, /rooms/[id], /rooms/[id]/calendar. Responsive 375px-1280px. Seed Mode + Live Mode. npm typecheck → 0 errores. Git commit ddf766d + push exitoso. Doc/RESUMEN_FASE_3_BLOQUES.md creado. Listo para Fase 4 (Reservas). |
 
 ---
 
