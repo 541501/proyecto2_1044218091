@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, addNoStoreHeaders } from '@/lib/withAuth';
 import { changePasswordSchema } from '@/lib/schemas';
-import {
-  getUserById,
-  verifyPassword,
-  hashPassword,
-} from '@/lib/dataService';
-import { supabase } from '@/lib/supabase';
+import { changeUserPassword } from '@/lib/dataService';
 
 export async function POST(request: NextRequest) {
   const { user } = await withAuth(request);
@@ -21,42 +16,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validated = changePasswordSchema.parse(body);
 
-    const currentUser = await getUserById(user.userId);
-
-    if (!currentUser) {
-      return addNoStoreHeaders(
-        NextResponse.json({ error: 'User not found' }, { status: 404 })
-      );
-    }
-
-    const passwordMatch = await verifyPassword(
+    const success = await changeUserPassword(
+      user.userId,
       validated.currentPassword,
-      currentUser.password_hash
+      validated.newPassword
     );
 
-    if (!passwordMatch) {
+    if (!success) {
       return addNoStoreHeaders(
         NextResponse.json(
-          { error: 'Contraseña actual incorrecta' },
+          { error: 'Contraseña actual incorrecta o error al cambiar' },
           { status: 400 }
         )
       );
-    }
-
-    const newHash = await hashPassword(validated.newPassword);
-
-    if (supabase) {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          password_hash: newHash,
-          must_change_password: false,
-        })
-        .eq('id', user.userId);
-
-      if (error) {
-        throw error;
-      }
     }
 
     return addNoStoreHeaders(NextResponse.json({ success: true }));

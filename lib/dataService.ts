@@ -1,4 +1,5 @@
 import bcryptjs from 'bcryptjs';
+import { randomBytes } from 'crypto';
 import type {
   User,
   SafeUser,
@@ -12,6 +13,7 @@ import type {
   CreateReservationRequest,
   CancelReservationRequest,
   ReservationFilters,
+  OccupancyReportRow,
 } from './types';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { appendAudit, isBlobConfigured } from './blobAudit';
@@ -731,5 +733,248 @@ export async function cancelReservation(
   });
 
   return updatedReservation;
+}
+
+// ==================== REPORTS ====================
+
+/**
+ * Get occupancy report data for a date range and optional block filter.
+ * 
+ * Retrieves confirmed reservations with all related information (professor, room, block, slot).
+ * Used for CSV export and JSON preview.
+ */
+export async function getOccupancyReport(
+  fromDate: string,
+  toDate: string,
+  blockId?: string
+): Promise<OccupancyReportRow[]> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    // In seed mode, no real reservations
+    return [];
+  }
+
+  // Build query with all joins
+  let query = supabase!
+    .from('reservations')
+    .select(
+      `
+      id,
+      reservation_date,
+      subject,
+      group_name,
+      status,
+      professor:professor_id (name),
+      room:room_id (
+        id,
+        code,
+        block_id,
+        block:block_id (name)
+      ),
+      slot:slot_id (name)
+    `
+    )
+    .eq('status', 'confirmada')
+    .gte('reservation_date', fromDate)
+    .lte('reservation_date', toDate)
+    .order('reservation_date', { ascending: true });
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching occupancy report:', error);
+    return [];
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  // Transform the query results into OccupancyReportRow format
+  let rows = data
+    .filter((row: any) => {
+      // Filter by block if provided
+      if (blockId) {
+        return row.room?.block_id === blockId;
+      }
+      return true;
+    })
+    .map((row: any) => {
+      const date = new Date(row.reservation_date);
+      const fecha = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+
+      return {
+        fecha,
+        bloque: row.room?.block?.name || 'N/A',
+        salon: row.room?.code || 'N/A',
+        codigo: row.room?.code || 'N/A',
+        franja: row.slot?.name || 'N/A',
+        profesor: row.professor?.name || 'N/A',
+        materia: row.subject || 'N/A',
+        grupo: row.group_name || 'N/A',
+        estado: row.status === 'confirmada' ? 'Confirmada' : 'Cancelada',
+      };
+    });
+
+  return rows;
+}
+
+// ==================== USER MANAGEMENT ====================
+
+/**
+ * Get all users (admin only)
+ */
+export async function getAllUsers(): Promise<SafeUser[]> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    const seed = await readSeed();
+    return seed.users.map(toSafeUser) || [];
+  }
+
+  const { data, error } = await supabase!
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
+
+  return (data || []).map(toSafeUser);
+}
+
+/**
+ * Create a new user with temporary password.
+ * 
+ * - Generates a random 12-character password
+ * - Hashes it with bcrypt
+ * - Sets must_change_password=true
+ * - Returns the temporary password in plain text (once)
+ */
+export async function createUserWithTemporaryPassword(
+  name: string,
+  email: string,
+  role: 'profesor' | 'coordinador' | 'admin'
+): Promise<{ user: SafeUser; temporaryPassword: string } | null> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    return null; // Cannot create users in seed mode
+  }
+
+  // Generate temporary password
+  const temporaryPassword = randomBytes(6).toString('hex'); // 12 hex chars = 6 bytes
+
+  // Hash the password
+  const passwordHash = await hashPassword(temporaryPassword);
+
+  // Create the user
+  const { data, error } = await supabase!
+    .from('users')
+    .insert([
+      {
+        name,
+        email,
+        password_hash: passwordHash,
+        role,
+        is_active: true,
+        must_change_password: true,
+        created_at: new Date().toISOString(),
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating user:', error);
+    return null;
+  }
+
+  return {
+    user: toSafeUser(data),
+    temporaryPassword,
+  };
+}
+
+/**
+ * Update a user (admin only)
+ */
+export async function updateUser(
+  userId: string,
+  updates: Partial<Omit<User, 'id' | 'password_hash' | 'created_at'>>
+): Promise<SafeUser | null> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    return null; // Cannot update users in seed mode
+  }
+
+  const { data, error } = await supabase!
+    .from('users')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating user:', error);
+    return null;
+  }
+
+  return toSafeUser(data);
+}
+
+/**
+ * Toggle user active status (admin only)
+ */
+export async function toggleUserStatus(
+  userId: string,
+  isActive: boolean
+): Promise<SafeUser | null> {
+  return updateUser(userId, { is_active: isActive });
+}
+
+/**
+ * Change password for authenticated user
+ */
+export async function changeUserPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<boolean> {
+  const mode = await getSystemMode();
+
+  if (mode === 'seed') {
+    return false; // Cannot change passwords in seed mode
+  }
+
+  // Fetch the user
+  const user = await getUserById(userId);
+  if (!user) {
+    return false;
+  }
+
+  // Verify current password
+  const passwordMatch = await verifyPassword(currentPassword, user.password_hash);
+  if (!passwordMatch) {
+    return false;
+  }
+
+  // Hash new password
+  const newPasswordHash = await hashPassword(newPassword);
+
+  // Update password and clear must_change_password flag
+  const { error } = await supabase!
+    .from('users')
+    .update({
+      password_hash: newPasswordHash,
+      must_change_password: false,
+    })
+    .eq('id', userId);
+
+  return !error;
 }
 

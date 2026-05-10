@@ -1,0 +1,52 @@
+{
+  "app": {
+    "[project]/app/_not-found/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/admin/audit/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/admin/db-setup/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/admin/users/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/blocks/[blockId]/[roomId]/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/blocks/[blockId]/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/blocks/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/dashboard/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/login/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/profile/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/reports/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/reservations/my/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/reservations/new/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ],
+    "[project]/app/reservations/page": [
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

@@ -1,0 +1,3 @@
+{
+  "/blocks/[blockId]/page": "app/blocks/[blockId]/page.js"
+}

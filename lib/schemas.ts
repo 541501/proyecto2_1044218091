@@ -41,3 +41,32 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type CreateReservationInput = z.infer<typeof createReservationSchema>;
 export type CancelReservationInput = z.infer<typeof cancelReservationSchema>;
 
+// Report filters schema
+export const reportFiltersSchema = z.object({
+  from_date: z.string().date('Fecha inicio inválida'),
+  to_date: z.string().date('Fecha fin inválida'),
+  block_id: z.string().uuid().optional(),
+  format: z.enum(['json', 'csv']).default('json'),
+});
+
+export type ReportFiltersInput = z.infer<typeof reportFiltersSchema>;
+
+// User management schemas
+export const createUserSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Nombre requerido')
+    .max(100, 'Nombre demasiado largo'),
+  email: z.string().email('Email inválido'),
+  role: z.enum(['profesor', 'coordinador', 'admin']),
+});
+
+export const updateUserSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  role: z.enum(['profesor', 'coordinador', 'admin']).optional(),
+  is_active: z.boolean().optional(),
+});
+
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+

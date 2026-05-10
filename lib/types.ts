@@ -114,3 +114,45 @@ export type JWTPayload = {
   email: string;
   mustChangePassword?: boolean;
 };
+
+// Report types
+export type OccupancyReportRow = {
+  fecha: string;           // DD/MM/YYYY
+  bloque: string;          // Block name
+  salon: string;           // Room code
+  codigo: string;          // Room code (duplicate)
+  franja: string;          // Slot name
+  profesor: string;        // Professor full name
+  materia: string;         // Subject
+  grupo: string;           // Group name
+  estado: string;          // Status
+};
+
+export type ReportFilters = {
+  from_date: string;       // YYYY-MM-DD
+  to_date: string;         // YYYY-MM-DD
+  block_id?: string;       // Optional block filter
+};
+
+// User management types
+export type CreateUserRequest = {
+  name: string;
+  email: string;
+  role: 'profesor' | 'coordinador' | 'admin';
+};
+
+export type CreateUserResponse = {
+  user: SafeUser;
+  temporaryPassword: string;
+};
+
+export type UpdateUserRequest = {
+  name?: string;
+  role?: 'profesor' | 'coordinador' | 'admin';
+  is_active?: boolean;
+};
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+};

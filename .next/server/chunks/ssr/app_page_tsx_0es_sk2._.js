@@ -1,0 +1,3 @@
+module.exports=[60350,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(50944);a.s(["default",0,function(){let a=(0,d.useRouter)();return(0,c.useEffect)(()=>{(async()=>{try{(await fetch("/api/auth/me")).ok?a.push("/dashboard"):a.push("/login")}catch{a.push("/login")}})()},[a]),(0,b.jsx)("div",{className:"flex items-center justify-center min-h-screen bg-slate-50",children:(0,b.jsxs)("div",{className:"text-center",children:[(0,b.jsx)("div",{className:"text-2xl font-bold text-slate-900 mb-2",children:"ClassSport"}),(0,b.jsx)("div",{className:"text-slate-500",children:"Cargando..."})]})})}])}];
+
+//# sourceMappingURL=app_page_tsx_0es_sk2._.js.map
