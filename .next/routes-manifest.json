@@ -205,6 +205,12 @@
       "namedRegex": "^/api/rooms(?:/)?$"
     },
     {
+      "page": "/api/setup-database",
+      "regex": "^/api/setup\\-database(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/setup\\-database(?:/)?$"
+    },
+    {
       "page": "/api/system/bootstrap",
       "regex": "^/api/system/bootstrap(?:/)?$",
       "routeKeys": {},
@@ -275,6 +281,12 @@
       "regex": "^/reservations/new(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/reservations/new(?:/)?$"
+    },
+    {
+      "page": "/setup-database",
+      "regex": "^/setup\\-database(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/setup\\-database(?:/)?$"
     }
   ],
   "dataRoutes": [],

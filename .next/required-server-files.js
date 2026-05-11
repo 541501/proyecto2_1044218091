@@ -104,7 +104,7 @@ self.__SERVER_FILES_MANIFEST={
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "c:\\Users\\estudiante\\Music\\proyecto2_1044218091",
+    "outputFileTracingRoot": "C:\\Users\\BERLIN\\Documents\\log y prog\\proyecto2_1044218091",
     "cacheComponents": false,
     "cacheLife": {
       "default": {
@@ -166,7 +166,7 @@ self.__SERVER_FILES_MANIFEST={
       "proxyPrefetch": "flexible",
       "optimisticClientCache": true,
       "manualClientBasePath": false,
-      "cpus": 27,
+      "cpus": 15,
       "memoryBasedWorkersCount": false,
       "imgOptConcurrency": null,
       "imgOptTimeoutInSeconds": 7,
@@ -304,11 +304,11 @@ self.__SERVER_FILES_MANIFEST={
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.ts",
     "turbopack": {
-      "root": "c:\\Users\\estudiante\\Music\\proyecto2_1044218091"
+      "root": "C:\\Users\\BERLIN\\Documents\\log y prog\\proyecto2_1044218091"
     },
     "distDirRoot": ".next"
   },
-  "appDir": "c:\\Users\\estudiante\\Music\\proyecto2_1044218091",
+  "appDir": "C:\\Users\\BERLIN\\Documents\\log y prog\\proyecto2_1044218091",
   "relativeAppDir": "",
   "files": [
     ".next\\routes-manifest.json",

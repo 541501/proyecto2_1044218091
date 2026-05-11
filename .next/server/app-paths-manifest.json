@@ -20,6 +20,7 @@
   "/api/rooms/[id]/calendar/route": "app/api/rooms/[id]/calendar/route.js",
   "/api/rooms/[id]/route": "app/api/rooms/[id]/route.js",
   "/api/rooms/route": "app/api/rooms/route.js",
+  "/api/setup-database/route": "app/api/setup-database/route.js",
   "/api/system/bootstrap/route": "app/api/system/bootstrap/route.js",
   "/api/system/diagnose/route": "app/api/system/diagnose/route.js",
   "/api/system/mode/route": "app/api/system/mode/route.js",
@@ -35,5 +36,6 @@
   "/reports/page": "app/reports/page.js",
   "/reservations/my/page": "app/reservations/my/page.js",
   "/reservations/new/page": "app/reservations/new/page.js",
-  "/reservations/page": "app/reservations/page.js"
+  "/reservations/page": "app/reservations/page.js",
+  "/setup-database/page": "app/setup-database/page.js"
 }

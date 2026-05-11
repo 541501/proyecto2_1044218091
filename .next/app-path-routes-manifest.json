@@ -20,6 +20,7 @@
   "/api/rooms/[id]/calendar/route": "/api/rooms/[id]/calendar",
   "/api/rooms/[id]/route": "/api/rooms/[id]",
   "/api/rooms/route": "/api/rooms",
+  "/api/setup-database/route": "/api/setup-database",
   "/api/system/bootstrap/route": "/api/system/bootstrap",
   "/api/system/diagnose/route": "/api/system/diagnose",
   "/api/system/mode/route": "/api/system/mode",
@@ -35,5 +36,6 @@
   "/reports/page": "/reports",
   "/reservations/my/page": "/reservations/my",
   "/reservations/new/page": "/reservations/new",
-  "/reservations/page": "/reservations"
+  "/reservations/page": "/reservations",
+  "/setup-database/page": "/setup-database"
 }

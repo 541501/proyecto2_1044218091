@@ -173,6 +173,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../app/setup-database/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/setup-database">> = Specific
+  const handler = {} as typeof import("../../app/setup-database/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../app/api/auth/change-password/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/auth/change-password">> = Specific
@@ -312,6 +321,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/rooms">> = Specific
   const handler = {} as typeof import("../../app/api/rooms/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/setup-database/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/setup-database">> = Specific
+  const handler = {} as typeof import("../../app/api/setup-database/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
