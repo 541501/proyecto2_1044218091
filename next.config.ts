@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 
+// Tailwind CSS v4 with @tailwindcss/postcss configuration
 const nextConfig: NextConfig = {
   headers: async () => {
     return [
