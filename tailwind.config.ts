@@ -2,8 +2,9 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
+    "./src/app/**/*.{ts,tsx}",
+    "./src/components/**/*.{ts,tsx}",
+    "./src/ui/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
@@ -33,6 +34,16 @@ const config: Config = {
           800: '#1E293B',
           900: '#0F172A',
         },
+      },
+      keyframes: {
+        blob: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+        },
+      },
+      animation: {
+        blob: 'blob 7s infinite',
       },
     },
   },

@@ -1,20 +1,11 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
-// Tailwind CSS v4 with @tailwindcss/postcss configuration
 const nextConfig: NextConfig = {
-  headers: async () => {
-    return [
-      {
-        source: '/api/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          },
-        ],
-      },
-    ];
+  reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: false,
   },
+  serverExternalPackages: ['bcryptjs', 'postgres', 'tailwindcss', '@tailwindcss/postcss'],
 };
 
 export default nextConfig;

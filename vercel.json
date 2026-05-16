@@ -1,11 +1,1 @@
-{
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
-    "DATABASE_URL": "@database_url",
-    "BLOB_READ_WRITE_TOKEN": "@blob_read_write_token",
-    "JWT_SECRET": "@jwt_secret",
-    "ADMIN_BOOTSTRAP_SECRET": "@admin_bootstrap_secret"
-  }
-}
+{}
